@@ -18,7 +18,7 @@ export function toCamelCase (str: string): string {
  * @param callback - The function to call when the event is emitted.
  * @returns A function that can be called to unsubscribe the callback.
  */
-export function subscribe (model: AnyModel, name: string, callback: any) {
+export function subscribe (model: AnyModel, name: string, callback: () => void) {
 	model.on(name, callback)
 	return () => model.off(name, callback)
 }

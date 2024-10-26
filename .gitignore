@@ -9,3 +9,5 @@ __pycache__
 .ipynb_checkpoints
 
 src/cosmograph_widget/static
+
+.eslintcache

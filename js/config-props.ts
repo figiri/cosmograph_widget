@@ -1,6 +1,5 @@
 export const configProperties = [
   'disable_simulation',
-
   'simulation_decay',
   'simulation_gravity',
   'simulation_center',
@@ -12,36 +11,6 @@ export const configProperties = [
   'simulation_link_dist_random_variation_range',
   'simulation_repulsion_from_mouse',
   'simulation_friction',
-
-  'point_id',
-  'point_index',
-  'point_color',
-  'point_size',
-  'point_label',
-  'point_label_weight',
-  'point_x',
-  'point_y',
-  'point_include_columns',
-
-  'link_source',
-  'link_source_index',
-  'link_target',
-  'link_target_index',
-  'link_color',
-  'link_width',
-  'link_arrow',
-  'link_strength',
-  'link_include_columns',
-
-  'show_dynamic_labels',
-  'show_labels_for',
-  'show_top_labels',
-  'show_top_labels_limit',
-  'show_top_labels_by',
-  'static_label_weight',
-  'dynamic_label_weight',
-  'label_padding',
-  'show_hovered_point_label',
 
   'background_color',
   'space_size',
@@ -80,6 +49,38 @@ export const configProperties = [
   'fit_view_duration',
   'fit_view_by_points_in_rect',
   'random_seed',
-  'point_sampling_distance'
+  'point_sampling_distance',
+
+  'point_id',
+  'point_index',
+  'point_color',
+  'point_size',
+  'point_label',
+  'point_label_weight',
+  'point_x',
+  'point_y',
+  'point_include_columns',
+
+  'link_source',
+  'link_source_index',
+  'link_target',
+  'link_target_index',
+  'link_color',
+  'link_width',
+  'link_arrow',
+  'link_strength',
+  'link_include_columns',
+
+  'show_dynamic_labels',
+  'show_labels_for',
+  'show_top_labels',
+  'show_top_labels_limit',
+  'show_top_labels_by',
+  'static_label_weight',
+  'dynamic_label_weight',
+  'label_padding',
+  'show_hovered_point_label',
+
+  
   
 ]

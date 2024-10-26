@@ -13,12 +13,11 @@ function render({ model, el }: RenderProps) {
   main.classList.add('widget-container')
 	el.appendChild(main)
 
-	let cosmograph: Cosmograph
 	const cosmographContainer = document.createElement('div')
   cosmographContainer.classList.add('cosmograph-container')
   main.appendChild(cosmographContainer)
 
-	model.on('msg:custom', (msg: { [key: string]: any }) => {
+	model.on('msg:custom', (msg: { [key: string]: never }) => {
 		if (msg.type === 'select_point_by_index') {
 			cosmograph?.selectPoint(msg.index, true)
 		}
@@ -59,7 +58,7 @@ function render({ model, el }: RenderProps) {
 
 	const cosmographConfig: CosmographConfig = {
 		onClick: (index) => {
-			model.set('clicked_node_index', index)
+			model.set('clicked_point_index', index)
 			model.save_changes()
 		},
 		onPointsFiltered: () => {
@@ -98,7 +97,7 @@ function render({ model, el }: RenderProps) {
 
 	// Initializes the Cosmograph with the configured settings
   Object.values(modelChangeHandlers).forEach(callback => callback())
-	cosmograph = new Cosmograph(cosmographContainer, cosmographConfig)
+	const cosmograph = new Cosmograph(cosmographContainer, cosmographConfig)
 
  return () => {
 		unsubscribes.forEach(unsubscribe => unsubscribe())
