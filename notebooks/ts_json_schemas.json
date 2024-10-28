@@ -1,0 +1,879 @@
+{
+  "data.ts": {
+    "interfaces": [
+      {
+        "name": "CosmographPointsConfig",
+        "description": "",
+        "properties": [
+          {
+            "name": "Points",
+            "type": "CosmographInputData",
+            "description": "Input data for the points.\n\n{@link CosmographInputData} Accepts `File | string | Table | Uint8Array | ArrayBuffer | Record<string, unknown>[]`",
+            "optional": true
+          },
+          {
+            "name": "PointId",
+            "type": "string",
+            "description": "Unique identifier column for each point. Required for mapping links to points correctly.",
+            "optional": true
+          },
+          {
+            "name": "PointIndex",
+            "type": "string",
+            "description": "Numeric index column for each point. Used for efficient lookups and should be a sequential integer starting from 0.",
+            "optional": true
+          },
+          {
+            "name": "PointColor",
+            "type": "string",
+            "description": "The column name for the point color. If provided, points will be colored based on the values in this column, which should be either a color `string` or an array of numeric `[r, g, b, a]` values.",
+            "optional": true
+          },
+          {
+            "name": "PointColorFn",
+            "type": "AccessorFn<string | [number, number, number, number]>",
+            "description": "Specifies the function that will be used to generate the color for each point based on the value in the `pointColor` column. It takes a point record as input and its index, and should return a color `string` or an array of `[r, g, b, a]` values.\n\nWorks only when `pointColor` is provided. Overrides the values in `pointColor` column by processing them (in this case the values in the `pointColor` column can be of any type, not just colors).\n\n@param {any} value - The value from the `PointColor` column.\n@param {number} index - The index of the point.\n@returns {string | [number, number, number, number]} The color as a `string` or an array of `[r, g, b, a]` value to be applied to the point.",
+            "optional": true
+          },
+          {
+            "name": "PointSize",
+            "type": "string",
+            "description": "The column name for the point size.\nIf provided, points will be sized based on the values in this column, which should be numeric values.",
+            "optional": true
+          },
+          {
+            "name": "PointSizeFn",
+            "type": "AccessorFn<number>",
+            "description": "Specifies the function that will be used to generate the size for each point based on the value in the `pointSize` column.\nIt takes a point record as input and its index, and should return a numeric value.\n\nWorks only when `pointSize` is provided.\nOverrides the values in the `pointSize` column by processing them (in this case the values in the `pointSize` column can be of any type, not just numbers).\n\n@param {any} value - The value from the `pointSize` column.\n@param {number} index - The index of the point.\n@returns {number} The numeric size value to be applied to the point.",
+            "optional": true
+          },
+          {
+            "name": "PointLabel",
+            "type": "string",
+            "description": "The column name for the point label.",
+            "optional": true
+          },
+          {
+            "name": "PointLabelWeight",
+            "type": "string",
+            "description": "The column name for the point label weight. Accepts float values from 0 to 1.\nHigher weights make labels more likely to be shown.",
+            "optional": true
+          },
+          {
+            "name": "PointX",
+            "type": "string",
+            "description": "The column name for the point's x-coordinate. If provided with `pointY`, points will be positioned based on the values from `pointX` and `pointY` columns.",
+            "optional": true
+          },
+          {
+            "name": "PointY",
+            "type": "string",
+            "description": "The column name for the point's y-coordinate. If provided with `pointX`, points will be positioned based on the values from `pointX` and `pointY` columns.",
+            "optional": true
+          },
+          {
+            "name": "PointIncludeColumns",
+            "type": "array",
+            "description": "An array of additional column names to include in the point data.\n\nThese columns will be available on the point objects but not used by Cosmograph directly, can be used as accessors for Cosmograph comopnents.\nUseful for storing additional information about the points.",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "CosmographLinksConfig",
+        "description": "",
+        "properties": [
+          {
+            "name": "Links",
+            "type": "CosmographInputData",
+            "description": "The input data for the links.\n\n{@link CosmographInputData} Accepts `File | string | Table | Uint8Array | ArrayBuffer | Record<string, unknown>[]`",
+            "optional": true
+          },
+          {
+            "name": "LinkSource",
+            "type": "string",
+            "description": "The column name for the **source** point of each link. This should match the `pointId` values in the points data.",
+            "optional": true
+          },
+          {
+            "name": "LinkSourceIndex",
+            "type": "string",
+            "description": "The column name for the index of the **source** point of each link.\nThis is used for efficient lookups and should match the `pointIndex` values in the points data.",
+            "optional": true
+          },
+          {
+            "name": "LinkTarget",
+            "type": "string",
+            "description": "The column name for the **target** point of each link. This should match the `pointId` values in the points data.",
+            "optional": true
+          },
+          {
+            "name": "LinkTargetIndex",
+            "type": "string",
+            "description": "The column name for the index of the **target** point of each link.\nThis is used for efficient lookups and should match the `pointIndex` values in the points data.",
+            "optional": true
+          },
+          {
+            "name": "LinkColor",
+            "type": "string",
+            "description": "The column name for the link color.\n\nIf provided, links will be colored based on the values in this column, which should be either a color `string` or an array of numeric `[r, g, b, a]` values.",
+            "optional": true
+          },
+          {
+            "name": "LinkColorFn",
+            "type": "AccessorFn<string | [number, number, number, number]>",
+            "description": "Specifies the function that will be used to generate the color for each link based on the value in the `linkColor` column.\nIt takes a link record as input and its index, and should return a color `string` or an array of `[r, g, b, a]` values.\n\nWorks only when `linkColor` is provided. Overrides the values in `linkColor` column by processing them (in this case the values in the `linkColor` column can be of any type, not just colors).\n\n@param {any} value - The value from the `LinkColor` column.\n@param {number} index - The index of the link.\n@returns {string | [number, number, number, number]} The color as a `string` or an array of `[r, g, b, a]` value to be applied to the link.",
+            "optional": true
+          },
+          {
+            "name": "LinkWidth",
+            "type": "string",
+            "description": "The column name for the link width.\n\nIf provided, links will have their widths set based on the values in this column, which should be numeric values.",
+            "optional": true
+          },
+          {
+            "name": "LinkWidthFn",
+            "type": "AccessorFn<number>",
+            "description": "Specifies the function that will be used to generate the width for each link based on the value in the `linkWidth` column.\nIt takes a link record as input and its index, and should return a numeric value.\n\nWorks only when `linkWidth` is provided. Overrides the values in the `linkWidth` column by processing them (in this case the values in the `linkWidth` column can be of any type, not just numbers).\n\n@param {any} value - The value from the `linkWidth` column.\n@param {number} index - The index of the link.\n@returns {number} The numeric width value to be applied to the link.",
+            "optional": true
+          },
+          {
+            "name": "LinkArrow",
+            "type": "string",
+            "description": "The column name that determines whether a link should have an arrow.\nIf provided, links will have arrows based on the `boolean` values in this column.",
+            "optional": true
+          },
+          {
+            "name": "LinkArrowFn",
+            "type": "AccessorFn<boolean>",
+            "description": "Specifies the function that determines if a link should have an arrow based on the value in the `linkArrow` column.\nIt takes a link record as input and its index, and should return a boolean value.\n\nWorks only when `linkArrow` is provided. Overrides the values in the `linkArrow` column by processing them (in this case the values in the `linkArrow` column can be of any type, not just booleans).\n\n@param {any} value - The value from the `LinkArrow` column.\n@param {number} index - The index of the link.\n@returns {boolean} A boolean indicating whether the link should have an arrow.",
+            "optional": true
+          },
+          {
+            "name": "LinkStrength",
+            "type": "string",
+            "description": "The column name for the link strength.\nIf provided, links will have their strengths set based on the values in this column, which should be numeric values.\nLink strength affects the force simulation.",
+            "optional": true
+          },
+          {
+            "name": "LinkStrengthFn",
+            "type": "AccessorFn<number>",
+            "description": "Specifies the function that will be used to generate the strength for each link based on the value in the `linkStrength` column.\nIt takes a link record as input and its index, and should return a numeric value.\n\nWorks only when `linkStrength` is provided. Overrides the values in the `linkStrength` column by processing them (in this case the values in the `linkStrength` column can be of any type, not just numbers).\n\n@param {any} value - The value from the `LinkStrength` column.\n@param {number} index - The index of the link.\n@returns {number} The numeric strength value to be applied to the link.",
+            "optional": true
+          },
+          {
+            "name": "LinkIncludeColumns",
+            "type": "array",
+            "description": "An array of additional column names to include in the link data.\n\nThese columns will be available on the link objects but not used by Cosmograph directly, can be used as accessors for Cosmograph components. Useful for storing additional information about the links.",
+            "optional": true
+          }
+        ]
+      }
+    ]
+  },
+  "config.ts": {
+    "interfaces": [
+      {
+        "name": "BasicConfig",
+        "description": "",
+        "properties": [
+          {
+            "name": "disableSimulation",
+            "type": "boolean | null",
+            "description": "Do not run the simulation, just render the graph. Cosmos uses the x and y values of the points' data to determine their position in the graph. If x and y values are not specified, the position of the points will be assigned randomly. If the value is set to null and the data does not have any links, Cosmograph will automatically set this value to `true`. Default value: `null`",
+            "optional": true
+          },
+          {
+            "name": "rectangularSelectorClassName",
+            "type": "string",
+            "description": "Specifies the CSS class to use for the rectangular selector.",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "CallbackConfig",
+        "description": "",
+        "properties": [
+          {
+            "name": "onPointsFiltered",
+            "type": "(filteredPoints: CosmographData) => void",
+            "description": "Callback function that will be called when the points was filtered by point crossfilter. @param {CosmographData} index - A `Table` of filtered points.",
+            "optional": true
+          },
+          {
+            "name": "onLinksFiltered",
+            "type": "(filteredLinks: CosmographData) => void",
+            "description": "Callback function that will be called when the links was filtered by link crossfilter. @param {CosmographData} index - A `Table` of filtered links.",
+            "optional": true
+          },
+          {
+            "name": "onLabelClick",
+            "type": "(index: number, id: string, event: MouseEvent) => void",
+            "description": "Callback function that will be called when clicked on a label. @param {number} index - Point index for this label. @param {string} id - Point id for this label. @param {MouseEvent} event - Corresponding mouse event.",
+            "optional": true
+          },
+          {
+            "name": "onDataUpdated",
+            "type": "({ pointsCount, linksCount }: { pointsCount: number; linksCount: number }) => void",
+            "description": "Callback function that will be called when the graph is created. @param {Object} data - An object containing the counts of rendered points and links in the graph. @param {number} data.pointsCount - Number of rendered points in the graph. @param {number} data.linksCount - Number of rendered links in the graph.",
+            "optional": true
+          },
+          {
+            "name": "onAreaSelected",
+            "type": "(selection: [[number, number], [number, number]] | null) => void",
+            "description": "Callback function that will be called when area selection was performed. @param {[[number, number], [number, number]] | null} selection  \u2014 The selected area or `null` if the selection was cleared.",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "CosmographConfig",
+        "description": "Extends BasicConfig, CallbackConfig, SimulationConfig, SimulationEventConfig, CosmographDataConfig, LabelsCosmographConfig, GraphEvents, Omit<GraphConfigInterface, 'events' | 'simulation' | 'disableSimulation'>",
+        "properties": []
+      }
+    ]
+  },
+  "labels.ts": {
+    "interfaces": [
+      {
+        "name": "LabelsCosmographConfig",
+        "description": "",
+        "properties": [
+          {
+            "name": "showDynamicLabels",
+            "type": "boolean",
+            "description": "Show labels for the points that are currently visible on the screen, and automatically update to reflect the current zoom level.\n\nWorks only when `pointLabel` is provided.\nDefault: `false`",
+            "optional": true
+          },
+          {
+            "name": "showLabelsFor",
+            "type": "string[]",
+            "description": "An array of point ids to show labels for.\n\nWorks only when `pointLabel` is provided.\nDefault: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "showTopLabels",
+            "type": "boolean",
+            "description": "Show labels for the top points.\nWorks only when `pointLabel` is provided.\nDefault: `false`",
+            "optional": true
+          },
+          {
+            "name": "showTopLabelsLimit",
+            "type": "number",
+            "description": "Sets the maximum number of top points to show labels for.\nDefault: `100`",
+            "optional": true
+          },
+          {
+            "name": "showTopLabelsBy",
+            "type": "string",
+            "description": "Specify the numeric column that is used to determine the top points that will be sorted by. If not provided, the top points will be sorted by their total links count.\n\nWorks only when `pointLabel` is provided.\nDefault: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "pointLabelFn",
+            "type": "AccessorFn<string>",
+            "description": "Specifies the function that will be used to generate the labels based on `pointLabel` column. It should return a `string`.\n\nWorks only when `pointLabel` is provided. Overrides the values specified in `pointLabel` column by processing them.",
+            "optional": true
+          },
+          {
+            "name": "pointLabelWeightFn",
+            "type": "AccessorFn<number>",
+            "description": "Specifies the function that will be used to generate the label weights. Should return a `number` between 0 and 1.\n\nWorks only when `pointLabelWeight` is provided. Overrides the values specified in `pointLabelWeight` column by processing them.",
+            "optional": true
+          },
+          {
+            "name": "pointLabelClassName",
+            "type": "string | ((text: string, pointIndex: number, pointId?: string) => string)",
+            "description": "Specifies the CSS class to use for the point labels.\nThis can either be a string specifying a fixed CSS class name or a function that returns a CSS class name based on the point index and optional point ID.",
+            "optional": true
+          },
+          {
+            "name": "staticLabelWeight",
+            "type": "number",
+            "description": "Specifies the weight of the static labels.\nDefault: `0.8`",
+            "optional": true
+          },
+          {
+            "name": "dynamicLabelWeight",
+            "type": "number",
+            "description": "Specifies the weight of the dynamic labels.\nDefault: `0.7`",
+            "optional": true
+          },
+          {
+            "name": "labelMargin",
+            "type": "number",
+            "description": "Specifies the margin between the label and the point.\nDefault: `5`",
+            "optional": true
+          },
+          {
+            "name": "labelPadding",
+            "type": "{top: number; left: number; right: number; bottom: number}",
+            "description": "Specifies the padding of the label element.\nDefault: `{ left: 7, top: 4, right: 7, bottom: 4 }`",
+            "optional": true
+          },
+          {
+            "name": "customLabels",
+            "type": "CosmographCustomLabel[]",
+            "description": "Specifies an array of custom labels to be displayed on the Cosmograph canvas.\nEach custom label is defined by the `CosmographCustomLabel` type, which includes properties for the label text, position, weight and optional CSS class.",
+            "optional": true
+          },
+          {
+            "name": "showHoveredPointLabel",
+            "type": "boolean",
+            "description": "Whether to show a hovered point label.\nDefault: `false`",
+            "optional": true
+          },
+          {
+            "name": "hoveredPointLabelClassName",
+            "type": "string | ((text: string, pointIndex: number, pointId?: string) => string)",
+            "description": "Specifies the CSS class to use for the hovered point label.\nThis can either be a string specifying a fixed CSS class name or a function that returns a CSS class name based on the point index and optional point ID.",
+            "optional": true
+          }
+        ]
+      }
+    ]
+  },
+  "simulation.ts": {
+    "interfaces": [
+      {
+        "name": "SimulationConfig",
+        "description": "",
+        "properties": [
+          {
+            "name": "simulationDecay",
+            "type": "GraphSimulationSettings['decay']",
+            "description": "Decay coefficient. Use bigger values if you want the simulation to \"cool down\" slower. Default value: `1000`",
+            "optional": true
+          },
+          {
+            "name": "simulationGravity",
+            "type": "GraphSimulationSettings['gravity']",
+            "description": "Gravity force coefficient. Default value: `0`",
+            "optional": true
+          },
+          {
+            "name": "simulationCenter",
+            "type": "GraphSimulationSettings['center']",
+            "description": "Centering to center mass force coefficient. Default value: `0`",
+            "optional": true
+          },
+          {
+            "name": "simulationRepulsion",
+            "type": "GraphSimulationSettings['repulsion']",
+            "description": "Repulsion force coefficient. Default value: `0.1`",
+            "optional": true
+          },
+          {
+            "name": "simulationRepulsionTheta",
+            "type": "GraphSimulationSettings['repulsionTheta']",
+            "description": "Decreases / increases the detalization of the Many-Body force calculations. When `useQuadtree` is set to `true`, this property corresponds to the Barnes\u2013Hut approximation criterion. Default value: `1.7`",
+            "optional": true
+          },
+          {
+            "name": "simulationRepulsionQuadtreeLevels",
+            "type": "GraphSimulationSettings['repulsionQuadtreeLevels']",
+            "description": "Barnes\u2013Hut approximation depth. Can only be used when `useQuadtree` is set `true`. Default value: `12`",
+            "optional": true
+          },
+          {
+            "name": "simulationLinkSpring",
+            "type": "GraphSimulationSettings['linkSpring']",
+            "description": "Link spring force coefficient. Default value: `1`",
+            "optional": true
+          },
+          {
+            "name": "simulationLinkDistance",
+            "type": "GraphSimulationSettings['linkDistance']",
+            "description": "Minimum link distance. Default value: `2`",
+            "optional": true
+          },
+          {
+            "name": "simulationLinkDistRandomVariationRange",
+            "type": "GraphSimulationSettings['linkDistRandomVariationRange']",
+            "description": "Range of random link distance values. Default value: `[1, 1.2]`",
+            "optional": true
+          },
+          {
+            "name": "simulationRepulsionFromMouse",
+            "type": "GraphSimulationSettings['repulsionFromMouse']",
+            "description": "Repulsion coefficient from mouse position. The repulsion force is activated by pressing the right mouse button. Default value: `2`",
+            "optional": true
+          },
+          {
+            "name": "simulationFriction",
+            "type": "GraphSimulationSettings['friction']",
+            "description": "Friction coefficient. Default value: `0.85`",
+            "optional": true
+          },
+          {
+            "name": "simulationImpulse",
+            "type": "number",
+            "description": "Coefficient of simulation impulse from 0 to 1. If `undefined`, the graph will not apply a new impulse to the renders during adding or removing data items, but instead will use the current simulation impulse value from the graph. Has no impact if `disableSimulation` is `true`. Default value: `undefined`.",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "SimulationEventConfig",
+        "description": "",
+        "properties": [
+          {
+            "name": "onSimulationStart",
+            "type": "GraphSimulationSettings['onStart']",
+            "description": "Callback function that will be called when the simulation starts.",
+            "optional": true
+          },
+          {
+            "name": "onSimulationEnd",
+            "type": "GraphSimulationSettings['onEnd']",
+            "description": "Callback function that will be called when the simulation stops.",
+            "optional": true
+          },
+          {
+            "name": "onSimulationPause",
+            "type": "GraphSimulationSettings['onPause']",
+            "description": "Callback function that will be called when the simulation is paused.",
+            "optional": true
+          },
+          {
+            "name": "onSimulationRestart",
+            "type": "GraphSimulationSettings['onRestart']",
+            "description": "Callback function that will be called when the simulation is restarted.",
+            "optional": true
+          },
+          {
+            "name": "onSimulationTick",
+            "type": "GraphSimulationSettings['onTick']",
+            "description": "Callback function that will be called on every tick of the simulation. @param {number} alpha - The value of alpha will decrease over time as the simulation \"cools down\". @param {number | undefined} index - The index of the hovered point. @param {[number, number] | undefined} pointPosition - The position of the point under the cursor.",
+            "optional": true
+          }
+        ]
+      }
+    ]
+  },
+  "cosmos/config.ts": {
+    "interfaces": [
+      {
+        "name": "GraphEvents",
+        "description": "",
+        "properties": [
+          {
+            "name": "onClick",
+            "type": "(index: number | undefined, pointPosition: [number, number] | undefined, event: MouseEvent) => void",
+            "description": "Callback function called on every canvas click. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onMouseMove",
+            "type": "(index: number | undefined, pointPosition: [number, number] | undefined, event: MouseEvent) => void",
+            "description": "Callback function called when mouse movement happens. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onPointMouseOver",
+            "type": "(index: number, pointPosition: [number, number], event: MouseEvent | D3DragEvent<HTMLCanvasElement, undefined, Hovered> | D3ZoomEvent<HTMLCanvasElement, undefined> | undefined) => void",
+            "description": "Callback function called when a point appears under the mouse. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onPointMouseOut",
+            "type": "(event: MouseEvent | D3ZoomEvent<HTMLCanvasElement, undefined> | D3DragEvent<HTMLCanvasElement, undefined, Hovered> | undefined) => void",
+            "description": "Called when a point is no longer under the mouse pointer. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onZoomStart",
+            "type": "(e: D3ZoomEvent<HTMLCanvasElement, undefined>, userDriven: boolean) => void",
+            "description": "Called when zooming or panning starts. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onZoom",
+            "type": "(e: D3ZoomEvent<HTMLCanvasElement, undefined>, userDriven: boolean) => void",
+            "description": "Called continuously during zooming or panning. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onZoomEnd",
+            "type": "(e: D3ZoomEvent<HTMLCanvasElement, undefined>, userDriven: boolean) => void",
+            "description": "Called when zooming or panning ends. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onDragStart",
+            "type": "(e: D3DragEvent<HTMLCanvasElement, undefined, Hovered>) => void",
+            "description": "Called when dragging starts. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onDrag",
+            "type": "(e: D3DragEvent<HTMLCanvasElement, undefined, Hovered>) => void",
+            "description": "Called continuously during dragging. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onDragEnd",
+            "type": "(e: D3DragEvent<HTMLCanvasElement, undefined, Hovered>) => void",
+            "description": "Called when dragging ends. Default: `undefined`",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "GraphSimulationSettings",
+        "description": "",
+        "properties": [
+          {
+            "name": "decay",
+            "type": "number",
+            "description": "Decay coefficient. Default: `5000`",
+            "optional": true
+          },
+          {
+            "name": "gravity",
+            "type": "number",
+            "description": "Gravity force coefficient. Default: `0.25`",
+            "optional": true
+          },
+          {
+            "name": "center",
+            "type": "number",
+            "description": "Centering to center mass force coefficient. Default: `0`",
+            "optional": true
+          },
+          {
+            "name": "repulsion",
+            "type": "number",
+            "description": "Repulsion force coefficient. Default: `1.0`",
+            "optional": true
+          },
+          {
+            "name": "repulsionTheta",
+            "type": "number",
+            "description": "Detalization of Many-Body force calculations. Default: `1.15`",
+            "optional": true
+          },
+          {
+            "name": "repulsionQuadtreeLevels",
+            "type": "number",
+            "description": "Barnes\u2013Hut approximation depth. Default: `12`",
+            "optional": true
+          },
+          {
+            "name": "linkSpring",
+            "type": "number",
+            "description": "Link spring force coefficient. Default: `1`",
+            "optional": true
+          },
+          {
+            "name": "linkDistance",
+            "type": "number",
+            "description": "Minimum link distance. Default: `10`",
+            "optional": true
+          },
+          {
+            "name": "linkDistRandomVariationRange",
+            "type": "number[]",
+            "description": "Range of random link distance values. Default: `[1, 1.2]`",
+            "optional": true
+          },
+          {
+            "name": "repulsionFromMouse",
+            "type": "number",
+            "description": "Repulsion coefficient from mouse position. Default: `2`",
+            "optional": true
+          },
+          {
+            "name": "friction",
+            "type": "number",
+            "description": "Friction coefficient. Default: `0.85`",
+            "optional": true
+          },
+          {
+            "name": "onStart",
+            "type": "() => void",
+            "description": "Called when the simulation starts. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onTick",
+            "type": "(alpha: number, hoveredIndex?: number, pointPosition?: [number, number]) => void",
+            "description": "Called on every simulation tick. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onEnd",
+            "type": "() => void",
+            "description": "Called when simulation stops. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onPause",
+            "type": "() => void",
+            "description": "Called when simulation pauses. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "onRestart",
+            "type": "() => void",
+            "description": "Called when simulation restarts. Default: `undefined`",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "GraphConfigInterface",
+        "description": "",
+        "properties": [
+          {
+            "name": "disableSimulation",
+            "type": "boolean",
+            "description": "Do not run the simulation, just render the graph. Default: `false`",
+            "optional": true
+          },
+          {
+            "name": "backgroundColor",
+            "type": "string | [number, number, number, number]",
+            "description": "Canvas background color. Default: '#222222'",
+            "optional": true
+          },
+          {
+            "name": "spaceSize",
+            "type": "number",
+            "description": "Simulation space size. Default: `4096`",
+            "optional": true
+          },
+          {
+            "name": "defaultPointColor",
+            "type": "string | [number, number, number, number]",
+            "description": "Default point color. Default: '#b3b3b3'",
+            "optional": true
+          },
+          {
+            "name": "pointGreyoutOpacity",
+            "type": "number",
+            "description": "Greyed out point opacity value. Default: `0.1`",
+            "optional": true
+          },
+          {
+            "name": "defaultPointSize",
+            "type": "number",
+            "description": "Default size value for points. Default: `4`",
+            "optional": true
+          },
+          {
+            "name": "pointSizeScale",
+            "type": "number",
+            "description": "Scale factor for the point size. Default: `1`",
+            "optional": true
+          },
+          {
+            "name": "hoveredPointCursor",
+            "type": "string",
+            "description": "Cursor style when hovering over a point. Default: `auto`",
+            "optional": true
+          },
+          {
+            "name": "renderHoveredPointRing",
+            "type": "boolean",
+            "description": "Turns ring rendering around a point on hover on/off. Default: `false`",
+            "optional": true
+          },
+          {
+            "name": "hoveredPointRingColor",
+            "type": "string | [number, number, number, number]",
+            "description": "Hovered point ring color. Default: `white`",
+            "optional": true
+          },
+          {
+            "name": "focusedPointRingColor",
+            "type": "string | [number, number, number, number]",
+            "description": "Focused point ring color. Default: `white`",
+            "optional": true
+          },
+          {
+            "name": "focusedPointIndex",
+            "type": "number",
+            "description": "Set focus on a point by index. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "renderLinks",
+            "type": "boolean",
+            "description": "Turns link rendering on/off. Default: `true`",
+            "optional": true
+          },
+          {
+            "name": "defaultLinkColor",
+            "type": "string | [number, number, number, number]",
+            "description": "Default color for links. Default: '#666666'",
+            "optional": true
+          },
+          {
+            "name": "linkGreyoutOpacity",
+            "type": "number",
+            "description": "Greyed out link opacity value. Default: `0.1`",
+            "optional": true
+          },
+          {
+            "name": "defaultLinkWidth",
+            "type": "number",
+            "description": "Default width value for links. Default: `1`",
+            "optional": true
+          },
+          {
+            "name": "linkWidthScale",
+            "type": "number",
+            "description": "Scale factor for the link width. Default: `1`",
+            "optional": true
+          },
+          {
+            "name": "curvedLinks",
+            "type": "boolean",
+            "description": "If true, renders links as curved lines. Default: `false`",
+            "optional": true
+          },
+          {
+            "name": "curvedLinkSegments",
+            "type": "number",
+            "description": "Number of segments in a curved line. Default: `19`",
+            "optional": true
+          },
+          {
+            "name": "curvedLinkWeight",
+            "type": "number",
+            "description": "Weight affects the shape of the curve. Default: `0.8`",
+            "optional": true
+          },
+          {
+            "name": "curvedLinkControlPointDistance",
+            "type": "number",
+            "description": "Defines the control point position on the curve. Default: `0.5`",
+            "optional": true
+          },
+          {
+            "name": "defaultLinkArrows",
+            "type": "boolean",
+            "description": "Controls display of link arrows. Default: `false`",
+            "optional": true
+          },
+          {
+            "name": "linkArrowsSizeScale",
+            "type": "number",
+            "description": "Scale factor for link arrows size. Default: `1`",
+            "optional": true
+          },
+          {
+            "name": "linkVisibilityDistanceRange",
+            "type": "number[]",
+            "description": "Range of minimum and maximum link visibility distance. Default: `[50, 150]`",
+            "optional": true
+          },
+          {
+            "name": "linkVisibilityMinTransparency",
+            "type": "number",
+            "description": "Transparency value at max link distance. Default: `0.25`",
+            "optional": true
+          },
+          {
+            "name": "useQuadtree",
+            "type": "boolean",
+            "description": "Use classic quadtree algorithm for the Many-Body force. Default: `false`",
+            "optional": true
+          },
+          {
+            "name": "simulation",
+            "type": "GraphSimulationSettings",
+            "description": "Simulation parameters and event listeners",
+            "optional": true
+          },
+          {
+            "name": "events",
+            "type": "GraphEvents",
+            "description": "Events configuration",
+            "optional": true
+          },
+          {
+            "name": "showFPSMonitor",
+            "type": "boolean",
+            "description": "Show WebGL performance monitor. Default: `false`",
+            "optional": true
+          },
+          {
+            "name": "pixelRatio",
+            "type": "number",
+            "description": "Canvas pixel ratio. Default: `2`",
+            "optional": true
+          },
+          {
+            "name": "scalePointsOnZoom",
+            "type": "boolean",
+            "description": "Increase/decrease size of points on zoom. Default: `true`",
+            "optional": true
+          },
+          {
+            "name": "initialZoomLevel",
+            "type": "number",
+            "description": "Initial zoom level. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "disableZoom",
+            "type": "boolean",
+            "description": "Disables zooming. Default: `false`",
+            "optional": true
+          },
+          {
+            "name": "enableDrag",
+            "type": "boolean",
+            "description": "Enables/disables dragging of points. Default: `false`",
+            "optional": true
+          },
+          {
+            "name": "fitViewOnInit",
+            "type": "boolean",
+            "description": "Center and zoom view to fit all points on init. Default: `true`",
+            "optional": true
+          },
+          {
+            "name": "fitViewDelay",
+            "type": "number",
+            "description": "Delay in ms before fitting view when `fitViewOnInit` is enabled. Default: `250`",
+            "optional": true
+          },
+          {
+            "name": "fitViewPadding",
+            "type": "number",
+            "description": "Padding when fitting view to show all points. Default: `0.1`",
+            "optional": true
+          },
+          {
+            "name": "fitViewDuration",
+            "type": "number",
+            "description": "Duration for fitting view to show points. Default: `250`",
+            "optional": true
+          },
+          {
+            "name": "fitViewByPointsInRect",
+            "type": "[[number, number], [number, number]] | [number, number][]",
+            "description": "Fits view to points within a rectangle. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "randomSeed",
+            "type": "number | string",
+            "description": "Controls randomness of the layout. Default: `undefined`",
+            "optional": true
+          },
+          {
+            "name": "pointSamplingDistance",
+            "type": "number",
+            "description": "Point sampling distance in pixels. Default: `150`",
+            "optional": true
+          }
+        ]
+      }
+    ]
+  }
+}
