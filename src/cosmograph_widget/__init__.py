@@ -104,10 +104,10 @@ class Cosmograph(anywidget.AnyWidget):
 
     # Points and links are Pandas DataFrames that will be passed
     # to the JS side widget as an IPC (Inter-Process Communication) stream
-    _ipc_points = Bytes().tag(sync=True)
+    _ipc_points = Bytes(None, allow_none=True).tag(sync=True)
     points = Any()
     
-    _ipc_links = Bytes().tag(sync=True)
+    _ipc_links = Bytes(None, allow_none=True).tag(sync=True)
     links = Any()
 
     # The following are used to store values from JS side widget

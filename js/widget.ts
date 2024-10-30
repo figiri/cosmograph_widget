@@ -1,5 +1,5 @@
 import type { RenderProps } from "@anywidget/types"
-import { Cosmograph, CosmographConfig } from '@cosmograph/cosmograph'
+import { Cosmograph, CosmographConfig, prepareCosmographDataArrow } from '@cosmograph/cosmograph'
 import { tableFromIPC } from 'apache-arrow'
 
 import { subscribe, toCamelCase } from './helper'
@@ -7,7 +7,7 @@ import { configProperties } from './config-props'
 
 import "./widget.css"
 
-function render({ model, el }: RenderProps) {
+async function render({ model, el }: RenderProps) {
 	el.classList.add("cosmograph_widget")
 	const main = document.createElement('div')
   main.classList.add('widget-container')
@@ -70,11 +70,11 @@ function render({ model, el }: RenderProps) {
 	const modelChangeHandlers: { [key: string]: () => void } = {
 		'change:_ipc_points': () => {
 			const ipc = model.get('_ipc_points')
-			cosmographConfig.points = ipc ? tableFromIPC(ipc.buffer) : []
+			cosmographConfig.points = ipc ? tableFromIPC(ipc.buffer) : undefined
 		},
 		'change:_ipc_links': () => {
 			const ipc = model.get('_ipc_links')
-			cosmographConfig.links = ipc ? tableFromIPC(ipc.buffer) : []
+			cosmographConfig.links = ipc ? tableFromIPC(ipc.buffer) : undefined
 		}
 	}
 
@@ -97,6 +97,31 @@ function render({ model, el }: RenderProps) {
 
 	// Initializes the Cosmograph with the configured settings
   Object.values(modelChangeHandlers).forEach(callback => callback())
+
+	/**
+  * Prepares the Cosmograph data configuration when the points are `undefined` but the links are defined.
+  * This method will fetch the necessary data for the points based on the link source and target information.
+  * The resulting configuration is then merged into the existing `cosmographConfig` object.
+  */
+ if (cosmographConfig.points === undefined && cosmographConfig.links !== undefined
+		&& cosmographConfig.linkTarget !== undefined && cosmographConfig.linkSource !== undefined) {
+		const preparedDataArrow = await prepareCosmographDataArrow({
+			points: {
+				linkSource: cosmographConfig.linkSource,
+				linkTargets: [cosmographConfig.linkTarget],
+			},
+			links: {
+				linkSource: cosmographConfig.linkSource,
+				linkTargets: [cosmographConfig.linkTarget],
+			},
+		}, cosmographConfig.links, cosmographConfig.links)
+
+		Object.assign(cosmographConfig, preparedDataArrow?.cosmographConfig, {
+			points: preparedDataArrow?.points,
+			links: preparedDataArrow?.links
+		})
+	}
+
 	const cosmograph = new Cosmograph(cosmographContainer, cosmographConfig)
 
  return () => {
