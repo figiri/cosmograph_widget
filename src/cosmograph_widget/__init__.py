@@ -102,6 +102,9 @@ class Cosmograph(anywidget.AnyWidget):
     label_padding = Float(None, allow_none=True).tag(sync=True)
     show_hovered_point_label = Bool(None, allow_none=True).tag(sync=True)
 
+    # Not related to Cosmograph configuration settings
+    disable_point_size_legend = Bool(None, allow_none=True).tag(sync=True)
+
     # Points and links are Pandas DataFrames that will be passed
     # to the JS side widget as an IPC (Inter-Process Communication) stream
     _ipc_points = Bytes(None, allow_none=True).tag(sync=True)

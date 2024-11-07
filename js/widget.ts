@@ -1,5 +1,5 @@
 import type { RenderProps } from "@anywidget/types"
-import { Cosmograph, CosmographConfig, prepareCosmographDataArrow } from '@cosmograph/cosmograph'
+import { Cosmograph, CosmographConfig, prepareCosmographDataArrow, CosmographSizeLegend } from '@cosmograph/cosmograph'
 import { tableFromIPC } from 'apache-arrow'
 
 import { subscribe, toCamelCase } from './helper'
@@ -8,14 +8,17 @@ import { configProperties } from './config-props'
 import "./widget.css"
 
 async function render({ model, el }: RenderProps) {
-	el.classList.add("cosmograph_widget")
-	const main = document.createElement('div')
-  main.classList.add('widget-container')
-	el.appendChild(main)
+	el.classList.add('wrapper')
+	const graphContainer = document.createElement('div')
+  graphContainer.classList.add('graph')
+	el.appendChild(graphContainer)
 
-	const cosmographContainer = document.createElement('div')
-  cosmographContainer.classList.add('cosmograph-container')
-  main.appendChild(cosmographContainer)
+	const bottomContainer = document.createElement('div')
+	bottomContainer.classList.add('bottom')
+	el.appendChild(bottomContainer)
+
+	let pointSizeLegend: CosmographSizeLegend | undefined = undefined
+	let cosmograph: Cosmograph | undefined = undefined
 
 	model.on('msg:custom', (msg: { [key: string]: never }) => {
 		if (msg.type === 'select_point_by_index') {
@@ -75,6 +78,21 @@ async function render({ model, el }: RenderProps) {
 		'change:_ipc_links': () => {
 			const ipc = model.get('_ipc_links')
 			cosmographConfig.links = ipc ? tableFromIPC(ipc.buffer) : undefined
+		},
+
+		'change:disable_point_size_legend': () => {
+			const disablePointSizeLegend = model.get('disable_point_size_legend')
+
+			// TODO: This is a temporary workaround for a bug in Cosmograph where calling `pointSizeLegend.hide()` does not function correctly immediately after initialization.
+			if (!pointSizeLegend && !disablePointSizeLegend && cosmograph) {
+				pointSizeLegend = new CosmographSizeLegend(cosmograph, bottomContainer)
+			}
+
+			if (disablePointSizeLegend) {
+				pointSizeLegend?.hide()
+			} else {
+				pointSizeLegend?.show()
+			}
 		}
 	}
 
@@ -85,6 +103,15 @@ async function render({ model, el }: RenderProps) {
 
 			// "disable_simulation" -> "disableSimulation", "simulation_decay" -> "simulationDecay", etc.
 			if (value !== null) cosmographConfig[toCamelCase(prop) as keyof CosmographConfig] = value
+
+			cosmograph?.setConfig(cosmographConfig)
+
+			// TODO: This is a temporary fix for an issue in the Cosmograph Size Legend where adjusting the pointSize does not update the size legend properly.
+			if (prop === 'point_size' && pointSizeLegend) {
+				const pointSizeLegendConfig = pointSizeLegend.getConfig()
+				pointSizeLegend.setConfig(pointSizeLegendConfig)
+				if (!model.get('disable_point_size_legend')) pointSizeLegend.show()
+			}
 		}
 	})
 
@@ -92,7 +119,6 @@ async function render({ model, el }: RenderProps) {
 		.entries(modelChangeHandlers)
 		.map(([name, onModelChange]) => subscribe(model, name, () => {
 			onModelChange()
-			cosmograph.setConfig(cosmographConfig)
 		}))
 
 	// Initializes the Cosmograph with the configured settings
@@ -122,7 +148,24 @@ async function render({ model, el }: RenderProps) {
 		})
 	}
 
-	const cosmograph = new Cosmograph(cosmographContainer, cosmographConfig)
+	cosmograph = new Cosmograph(graphContainer, cosmographConfig)
+
+	// Point Size Legend
+	// TODO: Add a custom label for the size legend
+	// TODO: Set up the Point Size Legend at this point, once the issue with `pointSizeLegend.hide()` being called immediately after initialization is resolved in the Cosmograph.
+	// pointSizeLegend = new CosmographSizeLegend(cosmograph, bottomContainer)
+	// if (model.get('disable_point_size_legend')) pointSizeLegend.hide()
+
+	// TODO: This is a temporary workaround for a bug in Cosmograph where calling `pointSizeLegend.hide()` does not function correctly immediately after initialization.
+	if (!pointSizeLegend && !model.get('disable_point_size_legend')) {
+		pointSizeLegend = new CosmographSizeLegend(cosmograph, bottomContainer)
+	}
+
+	// Link Width Legend
+	// TODO: Add linkWidthLegend 👇. The `useLinksData: true` parameter does not work in the current cosmograph beta version.
+	// const linkWidthLegend = new CosmographSizeLegend(cosmograph, bottomContainer, {
+	// 	useLinksData: true
+	// })
 
  return () => {
 		unsubscribes.forEach(unsubscribe => unsubscribe())

@@ -1,12 +1,19 @@
-.cosmograph_widget .widget-container {
+.wrapper {
 	overflow: auto;
 	height: 450px;
 	display: flex;
+	flex-flow: column;
 }
 
-.cosmograph_widget .cosmograph-container {
-	overflow: auto;
+.wrapper .graph {
 	height: 100%;
 	display: flex;
+}
+
+.wrapper .bottom {
+	position: absolute;
+	overflow: hidden;
+	bottom: 1rem;
+	left: 1rem;
 }
 
