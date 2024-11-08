@@ -22,6 +22,7 @@ async function render({ model, el }: RenderProps) {
 	let pointSizeLegend: CosmographSizeLegend | undefined = undefined
 	let linkWidthLegend: CosmographSizeLegend | undefined = undefined
 	let pointRangeColorLegend: CosmographRangeColorLegend | undefined = undefined
+	let linkRangeColorLegend: CosmographRangeColorLegend | undefined = undefined
 	let cosmograph: Cosmograph | undefined = undefined
 
 	model.on('msg:custom', (msg: { [key: string]: never }) => {
@@ -122,6 +123,9 @@ async function render({ model, el }: RenderProps) {
 			// } else {
 			// 	pointRangeColorLegend?.show()
 			// }
+		},
+		'disable_link_range_color_legend': () => {
+			// TODO: 👆
 		}
 	}
 
@@ -159,6 +163,18 @@ async function render({ model, el }: RenderProps) {
 		// TODO: If the data is of category type, use `CosmographTypeColorLegend`
 	}
 
+	function updateLinkColorFn (linksSummary: Record<string, unknown>[]) {
+		const linkColorInfo = linksSummary.find(d => d.column_name === cosmographConfig.linkColor)
+		if (duckDBNumericTypes.includes(linkColorInfo?.column_type)) {
+			const linkColorScale = scaleSequential(interpolateWarm)
+			linkColorScale.domain([Number(linkColorInfo.min), Number(linkColorInfo.max)])
+			cosmographConfig.linkColorFn = (d: number) => linkColorScale(d)
+		} else {
+			cosmographConfig.linkColorFn = undefined
+		}
+		// TODO: If the data is of category type, use `CosmographTypeColorLegend`
+	}
+
 	const unsubscribes = Object
 		.entries(modelChangeHandlers)
 		.map(([propName, onModelChange]) => subscribe(model, `change:${propName}`, () => {
@@ -170,6 +186,14 @@ async function render({ model, el }: RenderProps) {
 				// Temporary workaround
 				const pointRangeColorLegendConfig = pointRangeColorLegend.getConfig()
 				pointRangeColorLegend.setConfig(pointRangeColorLegendConfig)
+			}
+
+			if (propName === 'link_color' && linkRangeColorLegend && cosmograph) {
+				updateLinkColorFn(cosmograph.stats?.linksSummary)
+
+				// Temporary workaround
+				const linkRangeColorLegendConfig = linkRangeColorLegend.getConfig()
+				linkRangeColorLegend.setConfig(linkRangeColorLegendConfig)
 			}
 
 			if (configProperties.includes(propName)) {
@@ -224,13 +248,20 @@ async function render({ model, el }: RenderProps) {
 		}
 		// if (disableLinkWidthLegend) linkWidthLegend.hide()
 
-		// Color range legend
+		// Point Color Range Legend
 		updatePointColorFn(stats.pointsSummary)
 		cosmograph.setConfig(cosmographConfig)
 		pointRangeColorLegend = new CosmographRangeColorLegend(cosmograph, bottomContainer, {
 			label: (d) => `points by ${d}`,
 		})
-	
+
+		// Link Color Range Legend
+		updateLinkColorFn(stats.linksSummary)
+		cosmograph.setConfig(cosmographConfig)
+		linkRangeColorLegend = new CosmographRangeColorLegend(cosmograph, bottomContainer, {
+			label: (d) => `links by ${d}`,
+			useLinksData: true
+		})
 	}
 
 	cosmograph = new Cosmograph(graphContainer, cosmographConfig)
