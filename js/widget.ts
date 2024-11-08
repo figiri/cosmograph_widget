@@ -19,6 +19,22 @@ async function render({ model, el }: RenderProps) {
 	bottomContainer.classList.add('bottom')
 	el.appendChild(bottomContainer)
 
+	const pointSizeLegendContainer = document.createElement('div')
+	pointSizeLegendContainer.classList.add('pointSizeLegend')
+	bottomContainer.appendChild(pointSizeLegendContainer)
+
+	const linkWidthLegendContainer = document.createElement('div')
+	linkWidthLegendContainer.classList.add('linkWidthLegend')	
+	bottomContainer.appendChild(linkWidthLegendContainer)
+
+	const pointColorLegendContainer = document.createElement('div')
+	pointColorLegendContainer.classList.add('pointColorLegend')
+	bottomContainer.appendChild(pointColorLegendContainer)
+
+	const linkColorLegendContainer = document.createElement('div')
+	linkColorLegendContainer.classList.add('linkColorLegend')
+	bottomContainer.appendChild(linkColorLegendContainer)
+
 	let pointSizeLegend: CosmographSizeLegend | undefined = undefined
 	let linkWidthLegend: CosmographSizeLegend | undefined = undefined
 	let pointRangeColorLegend: CosmographRangeColorLegend | undefined = undefined
@@ -89,14 +105,16 @@ async function render({ model, el }: RenderProps) {
 			const disablePointSizeLegend = model.get('disable_point_size_legend')
 			// TODO: This is a temporary workaround for a bug in Cosmograph where calling `pointSizeLegend.hide()` does not function correctly immediately after initialization.
 			if (!pointSizeLegend && !disablePointSizeLegend && cosmograph) {
-				pointSizeLegend = new CosmographSizeLegend(cosmograph, bottomContainer, {
+				pointSizeLegend = new CosmographSizeLegend(cosmograph, pointSizeLegendContainer, {
 					label: (d) => `points by ${d}`,
 				})
 			}
 
 			if (disablePointSizeLegend) {
+				pointSizeLegendContainer.classList.add('disable')
 				pointSizeLegend?.hide()
 			} else {
+				pointSizeLegendContainer.classList.remove('disable')
 				pointSizeLegend?.show()
 			}
 		},
@@ -104,28 +122,40 @@ async function render({ model, el }: RenderProps) {
 			const disableLinkWidthLegend = model.get('disable_link_width_legend')
 			// TODO: This is a temporary workaround for a bug in Cosmograph where calling `linkWidthLegend.hide()` does not function correctly immediately after initialization.
 			if (!linkWidthLegend && !disableLinkWidthLegend && cosmograph)
-			linkWidthLegend = new CosmographSizeLegend(cosmograph, bottomContainer, {
+			linkWidthLegend = new CosmographSizeLegend(cosmograph, linkWidthLegendContainer, {
 				label: (d) => `links by ${d}`,
 				useLinksData: true
 			})
 
 			if (disableLinkWidthLegend) {
+				linkWidthLegendContainer.classList.add('disable')
 				linkWidthLegend?.hide()
 			} else {
+				linkWidthLegendContainer.classList.remove('disable')
 				linkWidthLegend?.show()
 			}
 		},
 		'disable_point_range_color_legend': () => {
 			// TODO: Add with new cosmograph version. Does not work yet
-			// const disablePointRangeColorLegend = model.get('disable_point_range_color_legend')
-			// if (disablePointRangeColorLegend) {
-			// 	pointRangeColorLegend?.hide()
-			// } else {
-			// 	pointRangeColorLegend?.show()
-			// }
+			const disablePointRangeColorLegend = model.get('disable_point_range_color_legend')
+			if (disablePointRangeColorLegend) {
+				pointColorLegendContainer.classList.add('disable')
+				// pointRangeColorLegend?.hide()
+			} else {
+				pointColorLegendContainer.classList.remove('disable')
+				// pointRangeColorLegend?.show()
+			}
 		},
 		'disable_link_range_color_legend': () => {
 			// TODO: 👆
+			const disableLinkRangeColorLegend = model.get('disable_link_range_color_legend')
+			if (disableLinkRangeColorLegend) {
+				linkColorLegendContainer.classList.add('disable')
+				// linkRangeColorLegend?.hide()
+			} else {
+				linkColorLegendContainer.classList.remove('disable')
+				// linkRangeColorLegend?.show()
+			}
 		}
 	}
 
@@ -232,7 +262,7 @@ async function render({ model, el }: RenderProps) {
 		// Point Size Legend
 		const disablePointSizeLegend = model.get('disable_point_size_legend')
 		if (!disablePointSizeLegend) {
-			pointSizeLegend = new CosmographSizeLegend(cosmograph, bottomContainer, {
+			pointSizeLegend = new CosmographSizeLegend(cosmograph, pointSizeLegendContainer, {
 				label: (d) => `points by ${d}`,
 			})
 		}
@@ -241,7 +271,7 @@ async function render({ model, el }: RenderProps) {
 		// Link Width Legend
 		const disableLinkWidthLegend = model.get('disable_link_width_legend')
 		if (!disableLinkWidthLegend) {
-			linkWidthLegend = new CosmographSizeLegend(cosmograph, bottomContainer, {
+			linkWidthLegend = new CosmographSizeLegend(cosmograph, linkWidthLegendContainer, {
 				label: (d) => `links by ${d}`,
 				useLinksData: true
 			})
@@ -251,14 +281,14 @@ async function render({ model, el }: RenderProps) {
 		// Point Color Range Legend
 		updatePointColorFn(stats.pointsSummary)
 		cosmograph.setConfig(cosmographConfig)
-		pointRangeColorLegend = new CosmographRangeColorLegend(cosmograph, bottomContainer, {
+		pointRangeColorLegend = new CosmographRangeColorLegend(cosmograph, pointColorLegendContainer, {
 			label: (d) => `points by ${d}`,
 		})
 
 		// Link Color Range Legend
 		updateLinkColorFn(stats.linksSummary)
 		cosmograph.setConfig(cosmographConfig)
-		linkRangeColorLegend = new CosmographRangeColorLegend(cosmograph, bottomContainer, {
+		linkRangeColorLegend = new CosmographRangeColorLegend(cosmograph, linkColorLegendContainer, {
 			label: (d) => `links by ${d}`,
 			useLinksData: true
 		})

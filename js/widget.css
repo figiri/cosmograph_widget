@@ -13,7 +13,31 @@
 .wrapper .bottom {
 	position: absolute;
 	overflow: hidden;
+	display: flex;
+	gap: 8px;
 	bottom: 1rem;
 	left: 1rem;
+	/* width: 200px; */
+	flex-direction: column;
+}
+
+.wrapper .bottom .pointSizeLegend {
+	width: fit-content;
+}
+
+.wrapper .bottom .linkWidthLegend {
+	width: fit-content;
+}
+
+.wrapper .bottom .pointColorLegend {
+	width: fit-content;
+}
+
+.wrapper .bottom .linkColorLegend {
+	width: fit-content;
+}
+
+.wrapper .bottom .disable {
+	display: none;
 }
 
