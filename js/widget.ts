@@ -87,7 +87,9 @@ async function render({ model, el }: RenderProps) {
 			const disablePointSizeLegend = model.get('disable_point_size_legend')
 			// TODO: This is a temporary workaround for a bug in Cosmograph where calling `pointSizeLegend.hide()` does not function correctly immediately after initialization.
 			if (!pointSizeLegend && !disablePointSizeLegend && cosmograph) {
-				pointSizeLegend = new CosmographSizeLegend(cosmograph, bottomContainer)
+				pointSizeLegend = new CosmographSizeLegend(cosmograph, bottomContainer, {
+					label: (d) => `points by ${d}`,
+				})
 			}
 
 			if (disablePointSizeLegend) {
@@ -118,8 +120,8 @@ async function render({ model, el }: RenderProps) {
 			// TODO: This is a temporary fix for an issue in the Cosmograph Size Legend where adjusting the pointSize does not update the size legend properly.
 			if (prop === 'point_size' && pointSizeLegend) {
 				const pointSizeLegendConfig = pointSizeLegend.getConfig()
+				pointSizeLegendConfig.label = (d) => `points by ${d}`
 				pointSizeLegend.setConfig(pointSizeLegendConfig)
-				if (!model.get('disable_point_size_legend')) pointSizeLegend.show()
 			}
 		}
 	})
@@ -182,6 +184,15 @@ async function render({ model, el }: RenderProps) {
 	}
 
 	cosmographConfig.onDataUpdated = stats => {
+		// Point Size Legend
+		const disablePointSizeLegend = model.get('disable_point_size_legend')
+		if (!disablePointSizeLegend) {
+			pointSizeLegend = new CosmographSizeLegend(cosmograph, bottomContainer, {
+				label: (d) => `points by ${d}`,
+			})
+		}
+		// if (disablePointSizeLegend) pointSizeLegend.hide()
+
 		// Color range legend
 		updatePointColorFn(stats.pointsSummary)
 		cosmograph.setConfig(cosmographConfig)
@@ -192,17 +203,6 @@ async function render({ model, el }: RenderProps) {
 	}
 
 	cosmograph = new Cosmograph(graphContainer, cosmographConfig)	
-
-	// Point Size Legend
-	// TODO: Add a custom label for the size legend
-	// TODO: Set up the Point Size Legend at this point, once the issue with `pointSizeLegend.hide()` being called immediately after initialization is resolved in the Cosmograph.
-	// pointSizeLegend = new CosmographSizeLegend(cosmograph, bottomContainer)
-	// if (model.get('disable_point_size_legend')) pointSizeLegend.hide()
-
-	// TODO: This is a temporary workaround for a bug in Cosmograph where calling `pointSizeLegend.hide()` does not function correctly immediately after initialization.
-	if (!pointSizeLegend && !model.get('disable_point_size_legend')) {
-		pointSizeLegend = new CosmographSizeLegend(cosmograph, bottomContainer)
-	}
 
 	// Link Width Legend
 	// TODO: Add linkWidthLegend 👇. The `useLinksData: true` parameter does not work in the current cosmograph beta version.
