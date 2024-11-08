@@ -20,6 +20,7 @@ async function render({ model, el }: RenderProps) {
 	el.appendChild(bottomContainer)
 
 	let pointSizeLegend: CosmographSizeLegend | undefined = undefined
+	let linkWidthLegend: CosmographSizeLegend | undefined = undefined
 	let pointRangeColorLegend: CosmographRangeColorLegend | undefined = undefined
 	let cosmograph: Cosmograph | undefined = undefined
 
@@ -98,6 +99,21 @@ async function render({ model, el }: RenderProps) {
 				pointSizeLegend?.show()
 			}
 		},
+		'disable_link_width_legend': () => {
+			const disableLinkWidthLegend = model.get('disable_link_width_legend')
+			// TODO: This is a temporary workaround for a bug in Cosmograph where calling `linkWidthLegend.hide()` does not function correctly immediately after initialization.
+			if (!linkWidthLegend && !disableLinkWidthLegend && cosmograph)
+			linkWidthLegend = new CosmographSizeLegend(cosmograph, bottomContainer, {
+				label: (d) => `links by ${d}`,
+				useLinksData: true
+			})
+
+			if (disableLinkWidthLegend) {
+				linkWidthLegend?.hide()
+			} else {
+				linkWidthLegend?.show()
+			}
+		},
 		'disable_point_range_color_legend': () => {
 			// TODO: Add with new cosmograph version. Does not work yet
 			// const disablePointRangeColorLegend = model.get('disable_point_range_color_legend')
@@ -122,6 +138,11 @@ async function render({ model, el }: RenderProps) {
 				const pointSizeLegendConfig = pointSizeLegend.getConfig()
 				pointSizeLegendConfig.label = (d) => `points by ${d}`
 				pointSizeLegend.setConfig(pointSizeLegendConfig)
+			}
+			if (prop === 'link_width' && linkWidthLegend) {
+				const linkWidthLegendConfig = linkWidthLegend.getConfig()
+				linkWidthLegendConfig.label = (d) => `links by ${d}`
+				linkWidthLegend.setConfig(linkWidthLegendConfig)
 			}
 		}
 	})
@@ -193,6 +214,16 @@ async function render({ model, el }: RenderProps) {
 		}
 		// if (disablePointSizeLegend) pointSizeLegend.hide()
 
+		// Link Width Legend
+		const disableLinkWidthLegend = model.get('disable_link_width_legend')
+		if (!disableLinkWidthLegend) {
+			linkWidthLegend = new CosmographSizeLegend(cosmograph, bottomContainer, {
+				label: (d) => `links by ${d}`,
+				useLinksData: true
+			})
+		}
+		// if (disableLinkWidthLegend) linkWidthLegend.hide()
+
 		// Color range legend
 		updatePointColorFn(stats.pointsSummary)
 		cosmograph.setConfig(cosmographConfig)
@@ -202,13 +233,7 @@ async function render({ model, el }: RenderProps) {
 	
 	}
 
-	cosmograph = new Cosmograph(graphContainer, cosmographConfig)	
-
-	// Link Width Legend
-	// TODO: Add linkWidthLegend 👇. The `useLinksData: true` parameter does not work in the current cosmograph beta version.
-	// const linkWidthLegend = new CosmographSizeLegend(cosmograph, bottomContainer, {
-	// 	useLinksData: true
-	// })
+	cosmograph = new Cosmograph(graphContainer, cosmographConfig)
 
  return () => {
 		unsubscribes.forEach(unsubscribe => unsubscribe())

@@ -104,6 +104,7 @@ class Cosmograph(anywidget.AnyWidget):
 
     # Not related to Cosmograph configuration settings
     disable_point_size_legend = Bool(None, allow_none=True).tag(sync=True)
+    disable_link_width_legend = Bool(None, allow_none=True).tag(sync=True)
     disable_point_range_color_legend = Bool(None, allow_none=True).tag(sync=True)
 
     # Points and links are Pandas DataFrames that will be passed
