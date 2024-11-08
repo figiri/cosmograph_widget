@@ -22,3 +22,19 @@ export function subscribe (model: AnyModel, name: string, callback: () => void) 
 	model.on(name, callback)
 	return () => model.off(name, callback)
 }
+
+export const duckDBNumericTypes = [
+  "TINYINT",
+  "SMALLINT",
+  "INTEGER",
+  "BIGINT",
+  "HUGEINT",
+  "UTINYINT",
+  "USMALLINT",
+  "UINTEGER",
+  "UBIGINT",
+  "UHUGEINT",
+  "FLOAT",
+  "DOUBLE",
+  "DECIMAL"
+]
