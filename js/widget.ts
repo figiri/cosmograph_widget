@@ -6,34 +6,12 @@ import { interpolateWarm } from 'd3-scale-chromatic'
 
 import { subscribe, toCamelCase, duckDBNumericTypes } from './helper'
 import { configProperties } from './config-props'
+import { createWidgetElements } from './widget-elements'
 
 import "./widget.css"
 
 async function render({ model, el }: RenderProps) {
-	el.classList.add('wrapper')
-	const graphContainer = document.createElement('div')
-  graphContainer.classList.add('graph')
-	el.appendChild(graphContainer)
-
-	const bottomContainer = document.createElement('div')
-	bottomContainer.classList.add('bottom')
-	el.appendChild(bottomContainer)
-
-	const pointSizeLegendContainer = document.createElement('div')
-	pointSizeLegendContainer.classList.add('pointSizeLegend')
-	bottomContainer.appendChild(pointSizeLegendContainer)
-
-	const linkWidthLegendContainer = document.createElement('div')
-	linkWidthLegendContainer.classList.add('linkWidthLegend')	
-	bottomContainer.appendChild(linkWidthLegendContainer)
-
-	const pointColorLegendContainer = document.createElement('div')
-	pointColorLegendContainer.classList.add('pointColorLegend')
-	bottomContainer.appendChild(pointColorLegendContainer)
-
-	const linkColorLegendContainer = document.createElement('div')
-	linkColorLegendContainer.classList.add('linkColorLegend')
-	bottomContainer.appendChild(linkColorLegendContainer)
+	const { graphContainer, pointSizeLegendContainer, linkWidthLegendContainer, pointColorLegendContainer, linkColorLegendContainer } = createWidgetElements(el)
 
 	let pointSizeLegend: CosmographSizeLegend | undefined = undefined
 	let linkWidthLegend: CosmographSizeLegend | undefined = undefined
@@ -215,6 +193,7 @@ async function render({ model, el }: RenderProps) {
 
 				// Temporary workaround
 				const pointRangeColorLegendConfig = pointRangeColorLegend.getConfig()
+				pointRangeColorLegendConfig.label = (d) => `points by ${d}`
 				pointRangeColorLegend.setConfig(pointRangeColorLegendConfig)
 			}
 
@@ -223,6 +202,7 @@ async function render({ model, el }: RenderProps) {
 
 				// Temporary workaround
 				const linkRangeColorLegendConfig = linkRangeColorLegend.getConfig()
+				linkRangeColorLegendConfig.label = (d) => `links by ${d}`
 				linkRangeColorLegend.setConfig(linkRangeColorLegendConfig)
 			}
 
