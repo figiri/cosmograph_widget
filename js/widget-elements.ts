@@ -32,3 +32,13 @@ export function createWidgetElements (el) {
     linkColorLegendContainer
   }
 }
+
+export function updateLegendVisibility (container, legend, disable) {
+  if (disable) {
+    container.classList.add('disable')
+    legend?.hide?.()
+  } else {
+    container.classList.remove('disable')
+    legend?.show?.()
+  }
+}

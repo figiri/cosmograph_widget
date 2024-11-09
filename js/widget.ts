@@ -6,7 +6,7 @@ import { interpolateWarm } from 'd3-scale-chromatic'
 
 import { subscribe, toCamelCase, duckDBNumericTypes } from './helper'
 import { configProperties } from './config-props'
-import { createWidgetElements } from './widget-elements'
+import { createWidgetElements, updateLegendVisibility } from './widget-elements'
 
 import "./widget.css"
 
@@ -87,53 +87,24 @@ async function render({ model, el }: RenderProps) {
 					label: (d) => `points by ${d}`,
 				})
 			}
-
-			if (disablePointSizeLegend) {
-				pointSizeLegendContainer.classList.add('disable')
-				pointSizeLegend?.hide()
-			} else {
-				pointSizeLegendContainer.classList.remove('disable')
-				pointSizeLegend?.show()
-			}
+			updateLegendVisibility(pointSizeLegendContainer, pointSizeLegend, disablePointSizeLegend)
 		},
 		'disable_link_width_legend': () => {
 			const disableLinkWidthLegend = model.get('disable_link_width_legend')
 			// TODO: This is a temporary workaround for a bug in Cosmograph where calling `linkWidthLegend.hide()` does not function correctly immediately after initialization.
-			if (!linkWidthLegend && !disableLinkWidthLegend && cosmograph)
-			linkWidthLegend = new CosmographSizeLegend(cosmograph, linkWidthLegendContainer, {
-				label: (d) => `links by ${d}`,
-				useLinksData: true
-			})
-
-			if (disableLinkWidthLegend) {
-				linkWidthLegendContainer.classList.add('disable')
-				linkWidthLegend?.hide()
-			} else {
-				linkWidthLegendContainer.classList.remove('disable')
-				linkWidthLegend?.show()
+			if (!linkWidthLegend && !disableLinkWidthLegend && cosmograph) {
+				linkWidthLegend = new CosmographSizeLegend(cosmograph, linkWidthLegendContainer, {
+					label: (d) => `links by ${d}`,
+					useLinksData: true
+				})
 			}
+			updateLegendVisibility(linkWidthLegendContainer, linkWidthLegend, disableLinkWidthLegend)
 		},
-		'disable_point_range_color_legend': () => {
-			// TODO: Add with new cosmograph version. Does not work yet
-			const disablePointRangeColorLegend = model.get('disable_point_range_color_legend')
-			if (disablePointRangeColorLegend) {
-				pointColorLegendContainer.classList.add('disable')
-				// pointRangeColorLegend?.hide()
-			} else {
-				pointColorLegendContainer.classList.remove('disable')
-				// pointRangeColorLegend?.show()
-			}
+		'disable_point_color_legend': () => {
+			updateLegendVisibility(pointColorLegendContainer, pointRangeColorLegend, model.get('disable_point_color_legend'))
 		},
-		'disable_link_range_color_legend': () => {
-			// TODO: 👆
-			const disableLinkRangeColorLegend = model.get('disable_link_range_color_legend')
-			if (disableLinkRangeColorLegend) {
-				linkColorLegendContainer.classList.add('disable')
-				// linkRangeColorLegend?.hide()
-			} else {
-				linkColorLegendContainer.classList.remove('disable')
-				// linkRangeColorLegend?.show()
-			}
+		'disable_link_color_legend': () => {
+			updateLegendVisibility(linkColorLegendContainer, linkRangeColorLegend, model.get('disable_link_color_legend'))
 		}
 	}
 
@@ -143,18 +114,11 @@ async function render({ model, el }: RenderProps) {
 			const value = model.get(prop)
 
 			// "disable_simulation" -> "disableSimulation", "simulation_decay" -> "simulationDecay", etc.
-			if (value !== null) cosmographConfig[toCamelCase(prop) as keyof CosmographConfig] = value
-
-			// TODO: This is a temporary fix for an issue in the Cosmograph Size Legend where adjusting the pointSize does not update the size legend properly.
-			if (prop === 'point_size' && pointSizeLegend) {
-				const pointSizeLegendConfig = pointSizeLegend.getConfig()
-				pointSizeLegendConfig.label = (d) => `points by ${d}`
-				pointSizeLegend.setConfig(pointSizeLegendConfig)
-			}
-			if (prop === 'link_width' && linkWidthLegend) {
-				const linkWidthLegendConfig = linkWidthLegend.getConfig()
-				linkWidthLegendConfig.label = (d) => `links by ${d}`
-				linkWidthLegend.setConfig(linkWidthLegendConfig)
+			const snakeToCamelProp = toCamelCase(prop) as keyof CosmographConfig
+			if (value === null) {
+				delete cosmographConfig[snakeToCamelProp]
+			} else {
+				cosmographConfig[snakeToCamelProp] = value
 			}
 		}
 	})
@@ -187,6 +151,20 @@ async function render({ model, el }: RenderProps) {
 		.entries(modelChangeHandlers)
 		.map(([propName, onModelChange]) => subscribe(model, `change:${propName}`, () => {
 			onModelChange()
+
+			// TODO: This is a temporary fix for an issue in the Cosmograph Size Legend where adjusting the pointSize does not update the size legend properly.
+			if (propName === 'point_size' && pointSizeLegend) {
+				const pointSizeLegendConfig = pointSizeLegend.getConfig()
+				pointSizeLegendConfig.label = (d) => `points by ${d}`
+				pointSizeLegend.setConfig(pointSizeLegendConfig)
+				updateLegendVisibility(pointSizeLegendContainer, pointSizeLegend, model.get('disable_point_size_legend'))
+			}
+			if (propName === 'link_width' && linkWidthLegend) {
+				const linkWidthLegendConfig = linkWidthLegend.getConfig()
+				linkWidthLegendConfig.label = (d) => `links by ${d}`
+				linkWidthLegend.setConfig(linkWidthLegendConfig)
+				updateLegendVisibility(linkWidthLegendContainer, linkWidthLegend, model.get('disable_link_width_legend'))
+			}
 
 			if (propName === 'point_color' && pointRangeColorLegend && cosmograph) {
 				updatePointColorFn(cosmograph.stats?.pointsSummary)
@@ -246,7 +224,6 @@ async function render({ model, el }: RenderProps) {
 				label: (d) => `points by ${d}`,
 			})
 		}
-		// if (disablePointSizeLegend) pointSizeLegend.hide()
 
 		// Link Width Legend
 		const disableLinkWidthLegend = model.get('disable_link_width_legend')
@@ -256,7 +233,6 @@ async function render({ model, el }: RenderProps) {
 				useLinksData: true
 			})
 		}
-		// if (disableLinkWidthLegend) linkWidthLegend.hide()
 
 		// Point Color Range Legend
 		updatePointColorFn(stats.pointsSummary)
