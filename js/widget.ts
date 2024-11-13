@@ -80,14 +80,14 @@ async function render({ model, el }: RenderProps) {
 		},
 
 		'disable_point_size_legend': () => {
-			const disablePointSizeLegend = model.get('disable_point_size_legend')
+			const disablePointSizeLegend = model.get('disable_point_size_legend') as boolean
 			// TODO: This is a temporary workaround for a bug in Cosmograph where calling `pointSizeLegend.hide()` does not function correctly immediately after initialization.
 			if (!pointSizeLegend && !disablePointSizeLegend && cosmograph) {
 				pointSizeLegend = new CosmographSizeLegend(cosmograph, pointSizeLegendContainer, {
 					label: (d) => `points by ${d}`,
 				})
 			}
-			updateLegendVisibility(pointSizeLegendContainer, pointSizeLegend, disablePointSizeLegend)
+			if (pointSizeLegend) updateLegendVisibility(pointSizeLegendContainer, pointSizeLegend, disablePointSizeLegend)
 		},
 		'disable_link_width_legend': () => {
 			const disableLinkWidthLegend = model.get('disable_link_width_legend')
@@ -98,13 +98,18 @@ async function render({ model, el }: RenderProps) {
 					useLinksData: true
 				})
 			}
-			updateLegendVisibility(linkWidthLegendContainer, linkWidthLegend, disableLinkWidthLegend)
+			if (linkWidthLegend) updateLegendVisibility(linkWidthLegendContainer, linkWidthLegend, disableLinkWidthLegend)
 		},
 		'disable_point_color_legend': () => {
-			updateLegendVisibility(pointColorLegendContainer, pointRangeColorLegend, model.get('disable_point_color_legend'))
+			if (pointRangeColorLegend) {
+				updateLegendVisibility(pointColorLegendContainer, pointRangeColorLegend, model.get('disable_point_color_legend'))
+			}
+			
 		},
 		'disable_link_color_legend': () => {
-			updateLegendVisibility(linkColorLegendContainer, linkRangeColorLegend, model.get('disable_link_color_legend'))
+			if (linkRangeColorLegend)  {
+				updateLegendVisibility(linkColorLegendContainer, linkRangeColorLegend, model.get('disable_link_color_legend'))
+			}
 		}
 	}
 
@@ -125,7 +130,7 @@ async function render({ model, el }: RenderProps) {
 
 	function updatePointColorFn (pointsSummary: Record<string, unknown>[]): void {
 		const pointColorInfo = pointsSummary.find(d => d.column_name === cosmographConfig.pointColor)
-		if (duckDBNumericTypes.includes(pointColorInfo?.column_type)) {
+		if (pointColorInfo && duckDBNumericTypes.includes(pointColorInfo.column_type as string)) {
 			const nodeColorScale = scaleSequential(interpolateWarm)
 			nodeColorScale.domain([Number(pointColorInfo.min), Number(pointColorInfo.max)])
 			cosmographConfig.pointColorFn = (d: number) => nodeColorScale(d)
@@ -137,7 +142,7 @@ async function render({ model, el }: RenderProps) {
 
 	function updateLinkColorFn (linksSummary: Record<string, unknown>[]) {
 		const linkColorInfo = linksSummary.find(d => d.column_name === cosmographConfig.linkColor)
-		if (duckDBNumericTypes.includes(linkColorInfo?.column_type)) {
+		if (linkColorInfo && duckDBNumericTypes.includes(linkColorInfo.column_type as string)) {
 			const linkColorScale = scaleSequential(interpolateWarm)
 			linkColorScale.domain([Number(linkColorInfo.min), Number(linkColorInfo.max)])
 			cosmographConfig.linkColorFn = (d: number) => linkColorScale(d)
@@ -166,7 +171,7 @@ async function render({ model, el }: RenderProps) {
 				updateLegendVisibility(linkWidthLegendContainer, linkWidthLegend, model.get('disable_link_width_legend'))
 			}
 
-			if (propName === 'point_color' && pointRangeColorLegend && cosmograph) {
+			if (propName === 'point_color' && pointRangeColorLegend && cosmograph && cosmograph.stats?.pointsSummary) {
 				updatePointColorFn(cosmograph.stats?.pointsSummary)
 
 				// Temporary workaround
@@ -175,7 +180,7 @@ async function render({ model, el }: RenderProps) {
 				pointRangeColorLegend.setConfig(pointRangeColorLegendConfig)
 			}
 
-			if (propName === 'link_color' && linkRangeColorLegend && cosmograph) {
+			if (propName === 'link_color' && linkRangeColorLegend && cosmograph && cosmograph.stats?.linksSummary) {
 				updateLinkColorFn(cosmograph.stats?.linksSummary)
 
 				// Temporary workaround
@@ -216,7 +221,8 @@ async function render({ model, el }: RenderProps) {
 		})
 	}
 
-	cosmographConfig.onDataUpdated = stats => {
+	cosmographConfig.onDataUpdated = (stats) => {
+		if (!cosmograph) return
 		// Point Size Legend
 		const disablePointSizeLegend = model.get('disable_point_size_legend')
 		if (!disablePointSizeLegend) {
@@ -242,12 +248,15 @@ async function render({ model, el }: RenderProps) {
 		})
 
 		// Link Color Range Legend
-		updateLinkColorFn(stats.linksSummary)
-		cosmograph.setConfig(cosmographConfig)
-		linkRangeColorLegend = new CosmographRangeColorLegend(cosmograph, linkColorLegendContainer, {
-			label: (d) => `links by ${d}`,
-			useLinksData: true
-		})
+		if (stats.linksSummary) {
+			updateLinkColorFn(stats.linksSummary)
+			cosmograph.setConfig(cosmographConfig)
+			linkRangeColorLegend = new CosmographRangeColorLegend(cosmograph, linkColorLegendContainer, {
+				label: (d) => `links by ${d}`,
+				useLinksData: true
+			})
+		}
+		
 	}
 
 	cosmograph = new Cosmograph(graphContainer, cosmographConfig)

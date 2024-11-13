@@ -1,4 +1,6 @@
-export function createWidgetElements (el) {
+import { CosmographSizeLegend, CosmographRangeColorLegend } from '@cosmograph/cosmograph'
+
+export function createWidgetElements (el: HTMLElement) {
   el.classList.add('wrapper')
 	const graphContainer = document.createElement('div')
   graphContainer.classList.add('graph')
@@ -33,12 +35,16 @@ export function createWidgetElements (el) {
   }
 }
 
-export function updateLegendVisibility (container, legend, disable) {
+export function updateLegendVisibility (
+	container: HTMLDivElement,
+	legend: CosmographSizeLegend | CosmographRangeColorLegend,
+	disable: boolean
+) {
   if (disable) {
     container.classList.add('disable')
-    legend?.hide?.()
+    legend.hide?.()
   } else {
     container.classList.remove('disable')
-    legend?.show?.()
+    legend.show?.()
   }
 }
