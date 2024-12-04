@@ -54,19 +54,41 @@ The Cosmograph widget offers extensive configuration options to customize its ap
 
 ## Development installation
 
-Create a virtual environment and and install cosmograph_widget in *editable* mode with the
-optional development dependencies:
+We'll assume you know how to create and manage virtual environments if you're that type of developper, but it's not necessary.
+
+### Clone the repo
 
 ```sh
-python -m venv .venv
-source .venv/bin/activate
+git clone https://github.com/cosmograph-org/cosmograph_widget
+```
+
+or
+
+```sh
+git clone git@github.com:cosmograph-org/cosmograph_widget.git
+```
+
+### Install from source
+
+Go to the directory where you installed this
+
+```sh
+cd cosmograph_widget
+```
+
+Install the package from source:
+
+```sh
 pip install -e ".[dev]"
 ```
 
-You then need to install the JavaScript dependencies and run the development server.
+### Rebuild the JS side of the widget package
+
+If you change the python side, effects will be automatic (baring import caching etc.). 
+But if you change the JS side, you'll need to rebuild stuff. 
+From the development root folder, run (assuming `npm` is installed):
 
 ```sh
-npm install
 npm run dev
 ```
 
