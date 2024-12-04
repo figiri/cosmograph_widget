@@ -68,13 +68,22 @@ or
 git clone git@github.com:cosmograph-org/cosmograph_widget.git
 ```
 
-### Install from source
+### Switch to dev branch
 
 Go to the directory where you installed this
 
 ```sh
 cd cosmograph_widget
 ```
+
+Switch to dev branch
+
+```sh
+git checkout dev
+```
+
+### Install from source
+
 
 Install the package from source:
 
@@ -85,12 +94,13 @@ pip install -e ".[dev]"
 ### Rebuild the JS side of the widget package
 
 If you change the python side, effects will be automatic (baring import caching etc.). 
-But if you change the JS side, you'll need to rebuild stuff. 
+But if you change the JS side and see the effects immediately, you'll need to have some "auto-build-and-load" server running...
 From the development root folder, run (assuming `npm` is installed):
 
 ```sh
 npm run dev
 ```
+
 
 Open `example.ipynb` in JupyterLab, VS Code, or your favorite editor
 to start developing. Changes made in `js/` will be reflected
