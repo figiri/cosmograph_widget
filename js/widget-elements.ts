@@ -1,49 +1,50 @@
 import { CosmographSizeLegend, CosmographRangeColorLegend } from '@cosmograph/cosmograph'
 
-export function createWidgetElements (el: HTMLElement) {
+export function createWidgetElements(el: HTMLElement): Record<string, HTMLElement> {
   el.classList.add('wrapper')
-	const graphContainer = document.createElement('div')
+  const graphContainer = document.createElement('div')
   graphContainer.classList.add('graph')
-	el.appendChild(graphContainer)
+  el.appendChild(graphContainer)
 
-	const bottomContainer = document.createElement('div')
-	bottomContainer.classList.add('bottom')
-	el.appendChild(bottomContainer)
+  const bottomContainer = document.createElement('div')
+  bottomContainer.classList.add('bottom')
+  el.appendChild(bottomContainer)
 
-	const pointSizeLegendContainer = document.createElement('div')
-	pointSizeLegendContainer.classList.add('pointSizeLegend')
-	bottomContainer.appendChild(pointSizeLegendContainer)
+  const pointSizeLegendContainer = document.createElement('div')
+  pointSizeLegendContainer.classList.add('pointSizeLegend')
+  bottomContainer.appendChild(pointSizeLegendContainer)
 
-	const linkWidthLegendContainer = document.createElement('div')
-	linkWidthLegendContainer.classList.add('linkWidthLegend')	
-	bottomContainer.appendChild(linkWidthLegendContainer)
+  const linkWidthLegendContainer = document.createElement('div')
+  linkWidthLegendContainer.classList.add('linkWidthLegend')
+  bottomContainer.appendChild(linkWidthLegendContainer)
 
-	const pointColorLegendContainer = document.createElement('div')
-	pointColorLegendContainer.classList.add('pointColorLegend')
-	bottomContainer.appendChild(pointColorLegendContainer)
+  const pointColorLegendContainer = document.createElement('div')
+  pointColorLegendContainer.classList.add('pointColorLegend')
+  bottomContainer.appendChild(pointColorLegendContainer)
 
-	const linkColorLegendContainer = document.createElement('div')
-	linkColorLegendContainer.classList.add('linkColorLegend')
-	bottomContainer.appendChild(linkColorLegendContainer)
+  const linkColorLegendContainer = document.createElement('div')
+  linkColorLegendContainer.classList.add('linkColorLegend')
+  bottomContainer.appendChild(linkColorLegendContainer)
 
   return {
     graphContainer,
     pointSizeLegendContainer,
     linkWidthLegendContainer,
     pointColorLegendContainer,
-    linkColorLegendContainer
+    linkColorLegendContainer,
   }
 }
 
-export function updateLegendVisibility (
-	container: HTMLDivElement,
-	legend: CosmographSizeLegend | CosmographRangeColorLegend,
-	disable: boolean
-) {
+export function updateLegendVisibility(
+  container: HTMLDivElement,
+  legend: CosmographSizeLegend | CosmographRangeColorLegend,
+  disable: boolean
+): void {
   if (disable) {
     container.classList.add('disable')
     legend.hide?.()
-  } else {
+  }
+  else {
     container.classList.remove('disable')
     legend.show?.()
   }

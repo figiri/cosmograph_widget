@@ -81,6 +81,4 @@ export const configProperties = [
   'label_padding',
   'show_hovered_point_label',
 
-  
-  
 ]
