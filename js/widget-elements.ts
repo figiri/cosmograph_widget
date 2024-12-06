@@ -43,8 +43,7 @@ export function updateLegendVisibility(
   if (disable) {
     container.classList.add('disable')
     legend.hide?.()
-  }
-  else {
+  } else {
     container.classList.remove('disable')
     legend.show?.()
   }

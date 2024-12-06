@@ -64,6 +64,7 @@ export default [
           requireLast: false,
         },
       }],
+      '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: true }],
 
       '@typescript-eslint/no-unused-expressions': ['error'],
       '@typescript-eslint/no-explicit-any': 'off',

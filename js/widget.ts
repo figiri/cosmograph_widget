@@ -120,8 +120,7 @@ async function render({ model, el }: RenderProps) {
       const snakeToCamelProp = toCamelCase(prop) as keyof CosmographConfig
       if (value === null) {
         delete cosmographConfig[snakeToCamelProp]
-      }
-      else {
+      } else {
         cosmographConfig[snakeToCamelProp] = value
       }
     }
@@ -133,8 +132,7 @@ async function render({ model, el }: RenderProps) {
       const nodeColorScale = scaleSequential(interpolateWarm)
       nodeColorScale.domain([Number(pointColorInfo.min), Number(pointColorInfo.max)])
       cosmographConfig.pointColorFn = (d: number) => nodeColorScale(d)
-    }
-    else {
+    } else {
       cosmographConfig.pointColorFn = undefined
     }
     // TODO: If the data is of category type, use `CosmographTypeColorLegend`
@@ -146,8 +144,7 @@ async function render({ model, el }: RenderProps) {
       const linkColorScale = scaleSequential(interpolateWarm)
       linkColorScale.domain([Number(linkColorInfo.min), Number(linkColorInfo.max)])
       cosmographConfig.linkColorFn = (d: number) => linkColorScale(d)
-    }
-    else {
+    } else {
       cosmographConfig.linkColorFn = undefined
     }
     // TODO: If the data is of category type, use `CosmographTypeColorLegend`
