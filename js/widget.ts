@@ -1,5 +1,5 @@
 import type { RenderProps } from '@anywidget/types'
-import { Cosmograph, CosmographConfig, prepareCosmographDataArrow, CosmographSizeLegend, CosmographRangeColorLegend } from '@cosmograph/cosmograph'
+import { Cosmograph, CosmographConfig, CosmographSizeLegend, CosmographRangeColorLegend } from '@cosmograph/cosmograph'
 import { tableFromIPC } from 'apache-arrow'
 import { scaleSequential } from 'd3-scale'
 import { interpolateWarm } from 'd3-scale-chromatic'
@@ -7,6 +7,7 @@ import { interpolateWarm } from 'd3-scale-chromatic'
 import { subscribe, toCamelCase, duckDBNumericTypes } from './helper'
 import { configProperties } from './config-props'
 import { createWidgetElements, updateLegendVisibility } from './widget-elements'
+import { prepareCosmographDataAndMutate } from './cosmograph-data'
 
 import './widget.css'
 
@@ -18,12 +19,20 @@ async function render({ model, el }: RenderProps) {
   let linkRangeColorLegend: CosmographRangeColorLegend | undefined = undefined
   let cosmograph: Cosmograph | undefined = undefined
 
-  model.on('msg:custom', (msg: { [key: string]: never }) => {
+  model.on('msg:custom', async (msg: { [key: string]: never }) => {
     if (msg.type === 'select_point_by_index') {
       cosmograph?.selectPoint(msg.index, true)
     }
+    if (msg.type === 'select_point_by_id') {
+      const index = (await cosmograph?.getPointIndicesByIds([msg.id]))?.[0]
+      cosmograph?.selectPoint(index, true)
+    }
     if (msg.type === 'select_points_by_indices') {
       cosmograph?.selectPoints(msg.indices)
+    }
+    if (msg.type === 'select_points_by_ids') {
+      const indices = await cosmograph?.getPointIndicesByIds(msg.ids)
+      cosmograph?.selectPoints(indices ?? null)
     }
     if (msg.type === 'activate_rect_selection') {
       cosmograph?.activateRectSelection()
@@ -37,11 +46,19 @@ async function render({ model, el }: RenderProps) {
     if (msg.type === 'fit_view_by_indices') {
       cosmograph?.fitViewByIndices(msg.indices, msg.duration, msg.padding)
     }
+    if (msg.type === 'fit_view_by_ids') {
+      const indices = await cosmograph?.getPointIndicesByIds(msg.ids)
+      if (indices) cosmograph?.fitViewByIndices(indices, msg.duration, msg.padding)
+    }
     if (msg.type === 'fit_view_by_coordinates') {
       cosmograph?.fitViewByCoordinates(msg.coordinates, msg.duration, msg.padding)
     }
-    if (msg.type === 'focus_point') {
+    if (msg.type === 'focus_point_by_index') {
       cosmograph?.focusPoint(msg.index ?? undefined)
+    }
+    if (msg.type === 'focus_point') {
+      const index = (await cosmograph?.getPointIndicesByIds([msg.id]))?.[0]
+      cosmograph?.focusPoint(index)
     }
     if (msg.type === 'start') {
       cosmograph?.start(msg.alpha ?? undefined)
@@ -58,12 +75,20 @@ async function render({ model, el }: RenderProps) {
   })
 
   const cosmographConfig: CosmographConfig = {
-    onClick: (index) => {
-      model.set('clicked_point_index', index)
+    onClick: async (index) => {
+      if (index === undefined) {
+        model.set('clicked_point_id', null)
+      } else {
+        const indices = await cosmograph?.getPointIdsByIndices([index])
+        model.set('clicked_point_id', indices?.[0] ?? null)
+      }
+      model.set('clicked_point_index', index ?? null)
       model.save_changes()
     },
-    onPointsFiltered: () => {
-      model.set('selected_point_indices', cosmograph?.getSelectedPointIndices() ?? [])
+    onPointsFiltered: async () => {
+      const indices = cosmograph?.getSelectedPointIndices()
+      model.set('selected_point_indices', indices ?? null)
+      model.set('selected_point_ids', indices ? await cosmograph?.getPointIdsByIndices(indices) : null)
       model.save_changes()
     },
   }
@@ -195,29 +220,7 @@ async function render({ model, el }: RenderProps) {
   // Initializes the Cosmograph with the configured settings
   Object.values(modelChangeHandlers).forEach(callback => callback())
 
-  /**
-  * Prepares the Cosmograph data configuration when the points are `undefined` but the links are defined.
-  * This method will fetch the necessary data for the points based on the link source and target information.
-  * The resulting configuration is then merged into the existing `cosmographConfig` object.
-  */
-  if (cosmographConfig.points === undefined && cosmographConfig.links !== undefined
-    && cosmographConfig.linkTarget !== undefined && cosmographConfig.linkSource !== undefined) {
-    const preparedDataArrow = await prepareCosmographDataArrow({
-      points: {
-        linkSource: cosmographConfig.linkSource,
-        linkTargets: [cosmographConfig.linkTarget],
-      },
-      links: {
-        linkSource: cosmographConfig.linkSource,
-        linkTargets: [cosmographConfig.linkTarget],
-      },
-    }, cosmographConfig.links, cosmographConfig.links)
-
-    Object.assign(cosmographConfig, preparedDataArrow?.cosmographConfig, {
-      points: preparedDataArrow?.points,
-      links: preparedDataArrow?.links,
-    })
-  }
+  await prepareCosmographDataAndMutate(cosmographConfig)
 
   cosmographConfig.onDataUpdated = (stats) => {
     if (!cosmograph) return

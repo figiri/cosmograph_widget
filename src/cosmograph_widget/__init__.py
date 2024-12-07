@@ -118,7 +118,9 @@ class Cosmograph(anywidget.AnyWidget):
 
     # The following are used to store values from JS side widget
     clicked_point_index = Int(None, allow_none=True).tag(sync=True)
+    clicked_point_id = Unicode(None, allow_none=True).tag(sync=True)
     selected_point_indices = List(Int, allow_none=True).tag(sync=True)
+    selected_point_ids = List(Unicode, allow_none=True).tag(sync=True)
 
     # Convert a Pandas DataFrame into a binary format and then write it to an IPC (Inter-Process Communication) stream.
     # The `with` statement ensures that the IPC stream is properly closed after writing the data.
@@ -149,8 +151,12 @@ class Cosmograph(anywidget.AnyWidget):
     # to interact with the Cosmograph 👇
     def select_point_by_index(self, index):
         self.send({ "type": "select_point_by_index", "index": index })
+    def select_point_by_id(self, id):
+        self.send({ "type": "select_point_by_id", "id": id })
     def select_points_by_indices(self, indices):
         self.send({ "type": "select_points_by_indices", "indices": indices })
+    def select_points_by_ids(self, ids):
+        self.send({ "type": "select_points_by_ids", "ids": ids })
 
     def activate_rect_selection(self):
         self.send({ "type": "activate_rect_selection" })
@@ -161,11 +167,15 @@ class Cosmograph(anywidget.AnyWidget):
         self.send({ "type": "fit_view" })
     def fit_view_by_indices(self, indices, duration=None, padding=None):
         self.send({ "type": "fit_view_by_indices", "indices": indices, "duration": duration, "padding": padding })
+    def fit_view_by_ids(self, ids, duration=None, padding=None):
+        self.send({ "type": "fit_view_by_ids", "ids": ids, "duration": duration, "padding": padding })
     def fit_view_by_coordinates(self, coordinates, duration=None, padding=None):
         self.send({ "type": "fit_view_by_coordinates", "coordinates": coordinates, "duration": duration, "padding": padding })
 
-    def focus_point(self, index=None):
-        self.send({ "type": "focus_point", "index": index })
+    def focus_point_by_index(self, index=None):
+        self.send({ "type": "focus_point_by_index", "index": index })
+    def focus_point(self, id=None):
+        self.send({ "type": "focus_point", "id": id })
     
     def start(self, alpha=None):
         self.send({ "type": "start", "alpha": alpha })
