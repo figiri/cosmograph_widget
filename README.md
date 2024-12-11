@@ -94,13 +94,19 @@ pip install -e ".[dev]"
 ### Rebuild the JS side of the widget package
 
 If you change the python side, effects will be automatic (baring import caching etc.). 
-But if you change the JS side and see the effects immediately, you'll need to have some "auto-build-and-load" server running...
-From the development root folder, run (assuming `npm` is installed):
+
+If you change the JS side, to see the the effects, you'll need to build the JS side. From the root directory:
+
+```sh
+npm run build
+```
+
+If you want some "auto-build-and-load" server running to not have to build manually every time you change some JS code, 
+from the root folder do:
 
 ```sh
 npm run dev
 ```
-
 
 Open `example.ipynb` in JupyterLab, VS Code, or your favorite editor
 to start developing. Changes made in `js/` will be reflected
