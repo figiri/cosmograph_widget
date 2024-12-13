@@ -1,6 +1,6 @@
 import { CosmographSizeLegend, CosmographRangeColorLegend } from '@cosmograph/cosmograph'
 
-export function createWidgetElements(el: HTMLElement): Record<string, HTMLElement> {
+export function createWidgetElements(el: HTMLElement): Record<string, HTMLDivElement> {
   el.classList.add('wrapper')
   const graphContainer = document.createElement('div')
   graphContainer.classList.add('graph')

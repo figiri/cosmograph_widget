@@ -21,27 +21,24 @@ import pandas as pd
 
 # Define the points of the graph
 points = pd.DataFrame([
-  { 'index': 0, 'id': '1', 'color': '#88C6FF' },
-  { 'index': 1, 'id': '2', 'color': '#FF99D2' },
-  { 'index': 2, 'id': '3', 'color': '#E3116C' },
+  { 'id': '1', 'color': '#88C6FF' },
+  { 'id': '2', 'color': '#FF99D2' },
+  { 'id': '3', 'color': '#E3116C' },
 ])
 
 # Define the links of the graph
 links = pd.DataFrame([
-  { 'sourceidx': 0, 'source': '1', 'targetidx': 1, 'target': '2' },
-  { 'sourceidx': 0, 'source': '1', 'targetidx': 2, 'target': '3' },
-  { 'sourceidx': 1, 'source': '2', 'targetidx': 2, 'target': '3' },
+  { 'source': '1', 'target': '2' },
+  { 'source': '1', 'target': '3' },
+  { 'source': '2', 'target': '3' },
 ])
 
 # Initialize the Cosmograph widget
 cosmo = Cosmograph(points=points, links=links,
-   point_id='id',
-   point_index='index',
-   point_color='color',
-   link_source='source',
-   link_source_index='sourceidx',
-   link_target='target',
-   link_target_index='targetidx',
+   point_id_by='id',
+   point_color_by='color',
+   link_source_by='source',
+   link_target_by='target',
 )
 
 # Display the widget
