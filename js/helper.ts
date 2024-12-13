@@ -39,3 +39,7 @@ export const duckDBNumericTypes = [
   'DECIMAL',
 
 ]
+
+export const duckDBStringTypes = [
+  'VARCHAR',
+]

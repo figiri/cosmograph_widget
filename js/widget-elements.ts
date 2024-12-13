@@ -26,6 +26,10 @@ export function createWidgetLegendElements(el: HTMLElement): Record<string, HTML
   pointColorLegendContainer.classList.add('pointColorLegend')
   bottomContainer.appendChild(pointColorLegendContainer)
 
+  const pointTypeColorLegendContainer = document.createElement('div')
+  pointTypeColorLegendContainer.classList.add('pointTypeColorLegend')
+  bottomContainer.appendChild(pointTypeColorLegendContainer)
+
   const linkColorLegendContainer = document.createElement('div')
   linkColorLegendContainer.classList.add('linkColorLegend')
   bottomContainer.appendChild(linkColorLegendContainer)
@@ -34,6 +38,7 @@ export function createWidgetLegendElements(el: HTMLElement): Record<string, HTML
     pointSizeLegendContainer,
     linkWidthLegendContainer,
     pointColorLegendContainer,
+    pointTypeColorLegendContainer,
     linkColorLegendContainer,
   }
 }

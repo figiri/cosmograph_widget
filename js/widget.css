@@ -17,7 +17,7 @@
 	gap: 8px;
 	bottom: 1rem;
 	left: 1rem;
-	/* width: 200px; */
+	width: 150px;
 	flex-direction: column;
 }
 
@@ -31,6 +31,10 @@
 
 .wrapper .bottom .pointColorLegend {
 	width: fit-content;
+}
+
+.wrapper .bottom .pointTypeColorLegend {
+	width: 100%;
 }
 
 .wrapper .bottom .linkColorLegend {

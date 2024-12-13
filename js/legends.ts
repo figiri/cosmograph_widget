@@ -1,5 +1,5 @@
 import { AnyModel } from '@anywidget/types'
-import { Cosmograph, CosmographSizeLegend, CosmographRangeColorLegend, CosmographSizeLegendConfig, CosmographRangeColorLegendConfig } from '@cosmograph/cosmograph'
+import { Cosmograph, CosmographSizeLegend, CosmographRangeColorLegend, CosmographSizeLegendConfig, CosmographRangeColorLegendConfig, CosmographTypeColorLegend } from '@cosmograph/cosmograph'
 
 import { createWidgetLegendElements } from './widget-elements'
 
@@ -7,6 +7,7 @@ export class CosmographLegends {
   public pointSizeLegendContainer: HTMLDivElement
   public linkWidthLegendContainer: HTMLDivElement
   public pointColorLegendContainer: HTMLDivElement
+  public pointTypeColorLegendContainer: HTMLDivElement
   public linkColorLegendContainer: HTMLDivElement
   public model: AnyModel
   public cosmograph: Cosmograph | undefined
@@ -14,13 +15,15 @@ export class CosmographLegends {
   private _pointSizeLegend: CosmographSizeLegend | undefined
   private _linkWidthLegend: CosmographSizeLegend | undefined
   private _pointRangeColorLegend: CosmographRangeColorLegend | undefined
+  private _pointTypeColorLegend: CosmographTypeColorLegend | undefined
   private _linkRangeColorLegend: CosmographRangeColorLegend | undefined
 
   constructor(container: HTMLElement, model: AnyModel) {
-    const { pointSizeLegendContainer, linkWidthLegendContainer, pointColorLegendContainer, linkColorLegendContainer } = createWidgetLegendElements(container)
+    const { pointSizeLegendContainer, linkWidthLegendContainer, pointColorLegendContainer, pointTypeColorLegendContainer, linkColorLegendContainer } = createWidgetLegendElements(container)
     this.pointSizeLegendContainer = pointSizeLegendContainer
     this.linkWidthLegendContainer = linkWidthLegendContainer
     this.pointColorLegendContainer = pointColorLegendContainer
+    this.pointTypeColorLegendContainer = pointTypeColorLegendContainer
     this.linkColorLegendContainer = linkColorLegendContainer
 
     this.model = model
@@ -32,20 +35,26 @@ export class CosmographLegends {
 
   public async updateLegend(
     type: 'point' | 'link',
-    property: 'size' | 'color' | 'width'
+    property: 'size' | 'color' | 'width',
+    colorType?: 'range' | 'type'
   ): Promise<void> {
     if (!this.cosmograph) return
     const disable = this.model.get(`disable_${type}_${property}_legend`) as (boolean | null)
     const by = this.model.get(`${type}_${property}_by`) as (string | null)
     const show = disable !== true && typeof by === 'string'
 
-    const { container, legendInstance } = await this._getLegendContainerAndInstance(type, property, show)
+    const { container, legendInstance } = await this._getLegendContainerAndInstance(type, property, show, colorType)
+    if (`${type}_${property}` === 'point_color' && (colorType === 'range' || colorType === undefined) && this._pointTypeColorLegend) {
+      this._updateLegendVisibility(this.pointTypeColorLegendContainer, this._pointTypeColorLegend, false)
+    }
+    if (`${type}_${property}` === 'point_color' && (colorType === 'type' || colorType === undefined) && this._pointRangeColorLegend) {
+      this._updateLegendVisibility(this.pointColorLegendContainer, this._pointRangeColorLegend, false)
+    }
     if (!container || !legendInstance) return
-
     this._updateLegendVisibility(container, legendInstance, show)
 
     if (show) {
-      const config = legendInstance.getConfig() as CosmographSizeLegendConfig & CosmographRangeColorLegendConfig
+      const config = legendInstance.getConfig() as CosmographSizeLegendConfig & CosmographRangeColorLegendConfig & CosmographTypeColorLegend
       config.label = d => `${type}s by ${d}`
       await legendInstance.setConfig(config)
     }
@@ -54,11 +63,12 @@ export class CosmographLegends {
   private async _getLegendContainerAndInstance(
     type: 'point' | 'link',
     property: 'size' | 'color' | 'width',
-    show: boolean
-  ): Promise<{ container: HTMLDivElement | undefined; legendInstance: CosmographSizeLegend | CosmographRangeColorLegend | undefined }> {
+    show: boolean,
+    colorType?: 'range' | 'type'
+  ): Promise<{ container: HTMLDivElement | undefined; legendInstance: CosmographSizeLegend | CosmographRangeColorLegend | CosmographTypeColorLegend | undefined }> {
     if (!this.cosmograph) return { container: undefined, legendInstance: undefined }
     let container: HTMLDivElement | undefined
-    let legendInstance: CosmographSizeLegend | CosmographRangeColorLegend | undefined
+    let legendInstance: CosmographSizeLegend | CosmographRangeColorLegend | CosmographTypeColorLegend | undefined
 
     switch (`${type}_${property}`) {
       case 'point_size':
@@ -69,11 +79,19 @@ export class CosmographLegends {
         legendInstance = this._pointSizeLegend
         break
       case 'point_color':
-        container = this.pointColorLegendContainer
-        if (!this._pointRangeColorLegend && show) {
-          this._pointRangeColorLegend = new CosmographRangeColorLegend(this.cosmograph, container)
+        if (colorType === 'range') {
+          container = this.pointColorLegendContainer
+          if (!this._pointRangeColorLegend && show) {
+            this._pointRangeColorLegend = new CosmographRangeColorLegend(this.cosmograph, container)
+          }
+          legendInstance = this._pointRangeColorLegend
+        } else if (colorType === 'type') {
+          container = this.pointTypeColorLegendContainer
+          if (!this._pointTypeColorLegend && show) {
+            this._pointTypeColorLegend = new CosmographTypeColorLegend(this.cosmograph, container)
+          }
+          legendInstance = this._pointTypeColorLegend
         }
-        legendInstance = this._pointRangeColorLegend
         break
       case 'link_width':
         container = this.linkWidthLegendContainer
@@ -100,7 +118,7 @@ export class CosmographLegends {
 
   private _updateLegendVisibility(
     container: HTMLDivElement,
-    legend: CosmographSizeLegend | CosmographRangeColorLegend,
+    legend: CosmographSizeLegend | CosmographRangeColorLegend | CosmographTypeColorLegend,
     show: boolean
   ): void {
     if (show) {
