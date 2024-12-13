@@ -1,23 +1,21 @@
 import type { RenderProps } from '@anywidget/types'
-import { Cosmograph, CosmographConfig, CosmographSizeLegend, CosmographRangeColorLegend } from '@cosmograph/cosmograph'
+import { Cosmograph, CosmographConfig } from '@cosmograph/cosmograph'
 import { tableFromIPC } from 'apache-arrow'
 import { scaleSequential } from 'd3-scale'
 import { interpolateWarm } from 'd3-scale-chromatic'
 
 import { subscribe, toCamelCase, duckDBNumericTypes } from './helper'
 import { configProperties } from './config-props'
-import { createWidgetElements, updateLegendVisibility } from './widget-elements'
+import { createWidgetContainer } from './widget-elements'
 import { prepareCosmographDataAndMutate } from './cosmograph-data'
+import { CosmographLegends } from './legends'
 
 import './widget.css'
 
 async function render({ model, el }: RenderProps) {
-  const { graphContainer, pointSizeLegendContainer, linkWidthLegendContainer, pointColorLegendContainer, linkColorLegendContainer } = createWidgetElements(el)
-  let pointSizeLegend: CosmographSizeLegend | undefined = undefined
-  let linkWidthLegend: CosmographSizeLegend | undefined = undefined
-  let pointRangeColorLegend: CosmographRangeColorLegend | undefined = undefined
-  let linkRangeColorLegend: CosmographRangeColorLegend | undefined = undefined
+  const { graphContainer } = createWidgetContainer(el)
   let cosmograph: Cosmograph | undefined = undefined
+  const legends = new CosmographLegends(el, model)
 
   model.on('msg:custom', async (msg: { [key: string]: never }) => {
     if (msg.type === 'select_point_by_index') {
@@ -104,36 +102,17 @@ async function render({ model, el }: RenderProps) {
       cosmographConfig.links = ipc ? tableFromIPC(ipc.buffer) : undefined
     },
 
-    disable_point_size_legend: () => {
-      const disablePointSizeLegend = model.get('disable_point_size_legend') as boolean
-      // TODO: This is a temporary workaround for a bug in Cosmograph where calling `pointSizeLegend.hide()` does not function correctly immediately after initialization.
-      if (!pointSizeLegend && !disablePointSizeLegend && cosmograph) {
-        pointSizeLegend = new CosmographSizeLegend(cosmograph, pointSizeLegendContainer, {
-          label: d => `points by ${d}`,
-        })
-      }
-      if (pointSizeLegend) updateLegendVisibility(pointSizeLegendContainer, pointSizeLegend, disablePointSizeLegend)
+    disable_point_size_legend: async () => {
+      await legends.updateLegend('point', 'size')
     },
-    disable_link_width_legend: () => {
-      const disableLinkWidthLegend = model.get('disable_link_width_legend')
-      // TODO: This is a temporary workaround for a bug in Cosmograph where calling `linkWidthLegend.hide()` does not function correctly immediately after initialization.
-      if (!linkWidthLegend && !disableLinkWidthLegend && cosmograph) {
-        linkWidthLegend = new CosmographSizeLegend(cosmograph, linkWidthLegendContainer, {
-          label: d => `links by ${d}`,
-          useLinksData: true,
-        })
-      }
-      if (linkWidthLegend) updateLegendVisibility(linkWidthLegendContainer, linkWidthLegend, disableLinkWidthLegend)
+    disable_link_width_legend: async () => {
+      await legends.updateLegend('link', 'width')
     },
-    disable_point_color_legend: () => {
-      if (pointRangeColorLegend) {
-        updateLegendVisibility(pointColorLegendContainer, pointRangeColorLegend, model.get('disable_point_color_legend'))
-      }
+    disable_point_color_legend: async () => {
+      await legends.updateLegend('point', 'color')
     },
-    disable_link_color_legend: () => {
-      if (linkRangeColorLegend) {
-        updateLegendVisibility(linkColorLegendContainer, linkRangeColorLegend, model.get('disable_link_color_legend'))
-      }
+    disable_link_color_legend: async () => {
+      await legends.updateLegend('link', 'color')
     },
   }
 
@@ -178,43 +157,34 @@ async function render({ model, el }: RenderProps) {
 
   const unsubscribes = Object
     .entries(modelChangeHandlers)
-    .map(([propName, onModelChange]) => subscribe(model, `change:${propName}`, () => {
+    .map(([propName, onModelChange]) => subscribe(model, `change:${propName}`, async () => {
       onModelChange()
 
-      // TODO: This is a temporary fix for an issue in the Cosmograph Size Legend where adjusting the pointSize does not update the size legend properly.
-      if (propName === 'point_size_by' && pointSizeLegend) {
-        const pointSizeLegendConfig = pointSizeLegend.getConfig()
-        pointSizeLegendConfig.label = d => `points by ${d}`
-        pointSizeLegend.setConfig(pointSizeLegendConfig)
-        updateLegendVisibility(pointSizeLegendContainer, pointSizeLegend, model.get('disable_point_size_legend'))
+      if (propName === 'point_size_by') {
+        await legends.updateLegend('point', 'size')
       }
-      if (propName === 'link_width_by' && linkWidthLegend) {
-        const linkWidthLegendConfig = linkWidthLegend.getConfig()
-        linkWidthLegendConfig.label = d => `links by ${d}`
-        linkWidthLegend.setConfig(linkWidthLegendConfig)
-        updateLegendVisibility(linkWidthLegendContainer, linkWidthLegend, model.get('disable_link_width_legend'))
+      if (propName === 'link_width_by') {
+        await legends.updateLegend('link', 'width')
       }
 
-      if (propName === 'point_color_by' && pointRangeColorLegend && cosmograph && cosmograph.stats.pointsSummary) {
-        updatePointColorFn(cosmograph.stats.pointsSummary)
-
-        // Temporary workaround
-        const pointRangeColorLegendConfig = pointRangeColorLegend.getConfig()
-        pointRangeColorLegendConfig.label = d => `points by ${d}`
-        pointRangeColorLegend.setConfig(pointRangeColorLegendConfig)
+      if (propName === 'point_color_by') {
+        if (cosmograph) updatePointColorFn(cosmograph.stats.pointsSummary)
       }
 
-      if (propName === 'link_color_by' && linkRangeColorLegend && cosmograph && cosmograph.stats.linksSummary) {
-        updateLinkColorFn(cosmograph.stats.linksSummary)
-
-        // Temporary workaround
-        const linkRangeColorLegendConfig = linkRangeColorLegend.getConfig()
-        linkRangeColorLegendConfig.label = d => `links by ${d}`
-        linkRangeColorLegend.setConfig(linkRangeColorLegendConfig)
+      if (propName === 'link_color_by') {
+        if (cosmograph?.stats.linksSummary) updateLinkColorFn(cosmograph.stats.linksSummary)
       }
 
       if (configProperties.includes(propName)) {
         cosmograph?.setConfig(cosmographConfig)
+      }
+
+      if (propName === 'point_color_by') {
+        await legends.updateLegend('point', 'color')
+      }
+
+      if (propName === 'link_color_by') {
+        await legends.updateLegend('link', 'color')
       }
     }))
 
@@ -223,44 +193,24 @@ async function render({ model, el }: RenderProps) {
 
   await prepareCosmographDataAndMutate(cosmographConfig)
 
-  cosmographConfig.onDataUpdated = (stats) => {
+  cosmographConfig.onDataUpdated = async (stats) => {
     if (!cosmograph) return
-    // Point Size Legend
-    const disablePointSizeLegend = model.get('disable_point_size_legend')
-    if (!disablePointSizeLegend) {
-      pointSizeLegend = new CosmographSizeLegend(cosmograph, pointSizeLegendContainer, {
-        label: d => `points by ${d}`,
-      })
-    }
+    await legends.updateLegend('point', 'size')
+    await legends.updateLegend('link', 'width')
 
-    // Link Width Legend
-    const disableLinkWidthLegend = model.get('disable_link_width_legend')
-    if (!disableLinkWidthLegend) {
-      linkWidthLegend = new CosmographSizeLegend(cosmograph, linkWidthLegendContainer, {
-        label: d => `links by ${d}`,
-        useLinksData: true,
-      })
-    }
-
-    // Point Color Range Legend
     updatePointColorFn(stats.pointsSummary)
-    cosmograph.setConfig(cosmographConfig)
-    pointRangeColorLegend = new CosmographRangeColorLegend(cosmograph, pointColorLegendContainer, {
-      label: d => `points by ${d}`,
-    })
 
-    // Link Color Range Legend
     if (stats.linksSummary) {
       updateLinkColorFn(stats.linksSummary)
-      cosmograph.setConfig(cosmographConfig)
-      linkRangeColorLegend = new CosmographRangeColorLegend(cosmograph, linkColorLegendContainer, {
-        label: d => `links by ${d}`,
-        useLinksData: true,
-      })
     }
+
+    cosmograph.setConfig(cosmographConfig)
+    await legends.updateLegend('point', 'color')
+    await legends.updateLegend('link', 'color')
   }
 
   cosmograph = new Cosmograph(graphContainer, cosmographConfig)
+  legends.setCosmograph(cosmograph)
 
   return (): void => {
     unsubscribes.forEach(unsubscribe => unsubscribe())

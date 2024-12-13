@@ -29,7 +29,7 @@ export default [
       '@stylistic/js': stylisticJs,
     },
     rules: {
-      'indent': ['error', 2],
+      'indent': 'off',
       'object-curly-spacing': ['error', 'always'],
       'prefer-template': 'error',
       'no-useless-constructor': 'off',
