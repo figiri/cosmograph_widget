@@ -54,4 +54,15 @@ export async function prepareCosmographDataAndMutate(config: CosmographConfig): 
   if (config.pointLabelBy !== undefined && config.showLabels === undefined) {
     config.showLabels = true
   }
+
+  // Temporary fix for Cosmograph simulation config parameters for small graphs
+  if (preparedDataArrow?.points?.numRows !== undefined && preparedDataArrow?.points?.numRows < 50 && config.simulationGravity === undefined) {
+    config.simulationGravity = 0
+  }
+  if (preparedDataArrow?.points?.numRows !== undefined && preparedDataArrow?.points?.numRows < 50 && config.simulationCenter === undefined) {
+    config.simulationCenter = 1
+  }
+  if (preparedDataArrow?.points?.numRows !== undefined && preparedDataArrow?.points?.numRows < 50 && config.simulationDecay === undefined) {
+    config.simulationDecay = 1000
+  }
 }

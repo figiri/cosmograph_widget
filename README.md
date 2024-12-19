@@ -33,16 +33,13 @@ links = pd.DataFrame([
   { 'source': '2', 'target': '3' },
 ])
 
-# Initialize the Cosmograph widget
-cosmo = Cosmograph(points=points, links=links,
+# Initialize and display the Cosmograph widget
+Cosmograph(points=points, links=links,
    point_id_by='id',
    point_color_by='color',
    link_source_by='source',
    link_target_by='target',
 )
-
-# Display the widget
-display(cosmo)
 ```
 
 ## Configuration and Customization
