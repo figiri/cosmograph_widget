@@ -229,6 +229,7 @@ async function render({ model, el }: RenderProps) {
 
   return (): void => {
     unsubscribes.forEach(unsubscribe => unsubscribe())
+    cosmograph?.destroy()
   }
 }
 
