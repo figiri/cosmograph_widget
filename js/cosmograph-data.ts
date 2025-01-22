@@ -62,6 +62,11 @@ export async function prepareCosmographDataAndMutate(config: WidgetConfig): Prom
   // TODO: Remove this logic after Dasha fix it in Cosmograph
   if (config.pointLabelBy !== undefined && config.showLabels === undefined) {
     config.showLabels = true
+    config.showDynamicLabels = true
+  }
+
+  if (config.pointColor !== undefined) {
+    config.pointColorStrategy = undefined
   }
 
   // Temporary fix for Cosmograph simulation config parameters for small graphs
