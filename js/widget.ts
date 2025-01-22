@@ -11,11 +11,12 @@ import { createWidgetContainer } from './widget-elements'
 import { prepareCosmographDataAndMutate } from './cosmograph-data'
 import { CosmographLegends } from './legends'
 import { PointTimeline } from './components/point-timeline'
+import { ControlButtonsComponent } from './components/control-buttons'
 
 import './widget.css'
 
 async function render({ model, el }: RenderProps) {
-  const { graphContainer, timelineContainer } = createWidgetContainer(el)
+  const { graphContainer, timelineContainer, controlsContainer } = createWidgetContainer(el)
   let cosmograph: Cosmograph | undefined = undefined
   let pointTimeline: PointTimeline | undefined = undefined
   const legends = new CosmographLegends(graphContainer, model)
@@ -240,6 +241,8 @@ async function render({ model, el }: RenderProps) {
   pointTimeline = new PointTimeline(cosmograph, timelineContainer, {
     accessor: model.get('timeline_by'),
   })
+
+  new ControlButtonsComponent(cosmograph, controlsContainer)
 
   return (): void => {
     unsubscribes.forEach(unsubscribe => unsubscribe())

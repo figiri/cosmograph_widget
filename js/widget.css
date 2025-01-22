@@ -61,3 +61,31 @@
 .wrapper .pointLabelClassName {
 	color: whitesmoke;
 }
+
+.wrapper .controls {
+	position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.wrapper .controls .selectAreaButton {
+	width: 15px;
+	height: 15px;
+	margin-bottom: 0.5rem;
+}
+
+.wrapper .controls .fitViewButton {
+	width: 15px;
+	height: 15px;
+}
+
+.wrapper .controls .playButton {
+	width: 15px;
+	height: 15px;
+	margin-bottom: 0.5rem;
+}
+
+.wrapper .controls .zoomInOutButton {
+	width: 15px;
+	height: 30px;
+}

@@ -8,9 +8,14 @@ export function createWidgetContainer(el: HTMLElement): Record<string, HTMLDivEl
   timelineContainer.classList.add('timeline')
   el.appendChild(timelineContainer)
 
+  const controlsContainer = document.createElement('div')
+  controlsContainer.classList.add('controls')
+  el.appendChild(controlsContainer)
+
   return {
     graphContainer,
     timelineContainer,
+    controlsContainer,
   }
 }
 
@@ -45,5 +50,30 @@ export function createWidgetLegendElements(el: HTMLElement): Record<string, HTML
     pointColorLegendContainer,
     pointTypeColorLegendContainer,
     linkColorLegendContainer,
+  }
+}
+
+export function createWidgetControlElements(el: HTMLElement): Record<string, HTMLDivElement> {
+  const playButtonContainer = document.createElement('div')
+  playButtonContainer.classList.add('playButton')
+  el.appendChild(playButtonContainer)
+
+  const selectAreaButtonContainer = document.createElement('div')
+  selectAreaButtonContainer.classList.add('selectAreaButton')
+  el.appendChild(selectAreaButtonContainer)
+
+  const fitViewButtonContainer = document.createElement('div')
+  fitViewButtonContainer.classList.add('fitViewButton')
+  el.appendChild(fitViewButtonContainer)
+
+  const zoomInOutButtonContainer = document.createElement('div')
+  zoomInOutButtonContainer.classList.add('zoomInOutButton')
+  el.appendChild(zoomInOutButtonContainer)
+
+  return {
+    fitViewButtonContainer,
+    zoomInOutButtonContainer,
+    playButtonContainer,
+    selectAreaButtonContainer,
   }
 }
