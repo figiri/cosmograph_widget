@@ -205,11 +205,11 @@ async function render({ model, el }: RenderProps) {
         await legends.updateLegend('link', 'color')
       }
 
-      // `timeline_by` can be initialized once with first provided property
+      // `point_timeline_by` can be initialized once with first provided property
       // In order to update accessor need to re-prepare the data for cosmograph
       // or provide column name in `point_include_columns` array
-      if (propName === 'timeline_by') {
-        pointTimeline?.setConfig({ accessor: model.get('timeline_by') })
+      if (propName === 'point_timeline_by') {
+        pointTimeline?.setConfig({ accessor: model.get('point_timeline_by') })
       }
     }))
 
@@ -233,13 +233,13 @@ async function render({ model, el }: RenderProps) {
     await legends.updateLegend('point', 'color', pointColorType)
     await legends.updateLegend('link', 'color')
 
-    pointTimeline?.setConfig({ accessor: model.get('timeline_by') })
+    pointTimeline?.setConfig({ accessor: model.get('point_timeline_by') })
   }
 
   cosmograph = new Cosmograph(graphContainer, cosmographConfig)
   legends.setCosmograph(cosmograph)
   pointTimeline = new PointTimeline(cosmograph, timelineContainer, {
-    accessor: model.get('timeline_by'),
+    accessor: model.get('point_timeline_by'),
   })
 
   new ControlButtonsComponent(cosmograph, controlsContainer)

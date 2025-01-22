@@ -95,6 +95,6 @@ export const configProperties = [
 
   'show_hovered_point_label',
 
-  'timeline_by',
+  'point_timeline_by',
 
 ]

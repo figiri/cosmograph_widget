@@ -1,7 +1,7 @@
 import { CosmographConfig, CosmographDataPrepConfig, prepareCosmographData, CosmographInputData } from '@cosmograph/cosmograph'
 
 export type WidgetConfig = CosmographConfig & {
-  timelineBy?: string;
+  pointTimelineBy?: string;
 }
 
 /**
@@ -23,8 +23,9 @@ export async function prepareCosmographDataAndMutate(config: WidgetConfig): Prom
     },
   }
 
-  if (config.timelineBy) {
-    cosmographDataPrepConfig.points.pointIncludeColumns?.push(config.timelineBy)
+  if (config.pointTimelineBy) {
+    if (!cosmographDataPrepConfig.points.pointIncludeColumns) cosmographDataPrepConfig.points.pointIncludeColumns = []
+    cosmographDataPrepConfig.points.pointIncludeColumns.push(config.pointTimelineBy)
   }
 
   if (config.points !== undefined) {
