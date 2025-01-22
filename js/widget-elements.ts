@@ -4,8 +4,13 @@ export function createWidgetContainer(el: HTMLElement): Record<string, HTMLDivEl
   graphContainer.classList.add('graph')
   el.appendChild(graphContainer)
 
+  const timelineContainer = document.createElement('div')
+  timelineContainer.classList.add('timeline')
+  el.appendChild(timelineContainer)
+
   return {
     graphContainer,
+    timelineContainer,
   }
 }
 

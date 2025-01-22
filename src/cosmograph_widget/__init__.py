@@ -86,6 +86,7 @@ class Cosmograph(anywidget.AnyWidget):
     point_cluster_by = Unicode(None, allow_none=True).tag(sync=True)
     point_cluster_strength_by = Unicode(None, allow_none=True).tag(sync=True)
     point_include_columns = List(Unicode, default_value=None, allow_none=True).tag(sync=True)
+    timeline_by = Unicode(None, allow_none=True).tag(sync=True)
 
     link_source_by = Unicode(None, allow_none=True).tag(sync=True)
     link_source_index_by = Unicode(None, allow_none=True).tag(sync=True)

@@ -10,13 +10,15 @@ import { configProperties } from './config-props'
 import { createWidgetContainer } from './widget-elements'
 import { prepareCosmographDataAndMutate } from './cosmograph-data'
 import { CosmographLegends } from './legends'
+import { PointTimeline } from './components/point-timeline'
 
 import './widget.css'
 
 async function render({ model, el }: RenderProps) {
-  const { graphContainer } = createWidgetContainer(el)
+  const { graphContainer, timelineContainer } = createWidgetContainer(el)
   let cosmograph: Cosmograph | undefined = undefined
-  const legends = new CosmographLegends(el, model)
+  let pointTimeline: PointTimeline | undefined = undefined
+  const legends = new CosmographLegends(graphContainer, model)
 
   model.on('msg:custom', async (msg: { [key: string]: never }) => {
     if (msg.type === 'select_point_by_index') {
@@ -201,6 +203,13 @@ async function render({ model, el }: RenderProps) {
       if (propName === 'link_color_by') {
         await legends.updateLegend('link', 'color')
       }
+
+      // `timeline_by` can be initialized once with first provided property
+      // In order to update accessor need to re-prepare the data for cosmograph
+      // or provide column name in `point_include_columns` array
+      if (propName === 'timeline_by') {
+        pointTimeline?.setConfig({ accessor: model.get('timeline_by') })
+      }
     }))
 
   // Initializes the Cosmograph with the configured settings
@@ -222,10 +231,15 @@ async function render({ model, el }: RenderProps) {
     cosmograph.setConfig(cosmographConfig)
     await legends.updateLegend('point', 'color', pointColorType)
     await legends.updateLegend('link', 'color')
+
+    pointTimeline?.setConfig({ accessor: model.get('timeline_by') })
   }
 
   cosmograph = new Cosmograph(graphContainer, cosmographConfig)
   legends.setCosmograph(cosmograph)
+  pointTimeline = new PointTimeline(cosmograph, timelineContainer, {
+    accessor: model.get('timeline_by'),
+  })
 
   return (): void => {
     unsubscribes.forEach(unsubscribe => unsubscribe())

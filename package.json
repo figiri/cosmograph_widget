@@ -7,7 +7,7 @@
 		"lint": "eslint --cache ./js"
 	},
 	"dependencies": {
-		"@cosmograph/cosmograph": "^2.0.0-beta.8",
+		"@cosmograph/cosmograph": "^2.0.0-beta.11",
 		"apache-arrow": "^17.0.0",
 		"d3-color": "^3.1.0",
 		"d3-scale": "^4.0.2",

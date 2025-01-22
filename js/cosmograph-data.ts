@@ -1,9 +1,13 @@
 import { CosmographConfig, CosmographDataPrepConfig, prepareCosmographData, CosmographInputData } from '@cosmograph/cosmograph'
 
+export type WidgetConfig = CosmographConfig & {
+  timelineBy?: string;
+}
+
 /**
  * Prepares and mutates the Cosmograph data configuration based on the provided `CosmographConfig`.
  */
-export async function prepareCosmographDataAndMutate(config: CosmographConfig): Promise<void> {
+export async function prepareCosmographDataAndMutate(config: WidgetConfig): Promise<void> {
   const hasLinks = config.links !== undefined && config.linkSourceBy !== undefined && config.linkTargetBy !== undefined
   const cosmographDataPrepConfig: CosmographDataPrepConfig = {
     points: {
@@ -17,6 +21,10 @@ export async function prepareCosmographDataAndMutate(config: CosmographConfig): 
       pointClusterStrengthBy: config.pointClusterStrengthBy,
       pointIncludeColumns: config.pointIncludeColumns,
     },
+  }
+
+  if (config.timelineBy) {
+    cosmographDataPrepConfig.points.pointIncludeColumns?.push(config.timelineBy)
   }
 
   if (config.points !== undefined) {
