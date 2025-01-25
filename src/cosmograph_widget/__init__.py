@@ -1,5 +1,6 @@
 import importlib.metadata
 import pathlib
+import json
 
 import pyarrow as pa
 import anywidget
@@ -10,10 +11,13 @@ try:
 except importlib.metadata.PackageNotFoundError:
     __version__ = "unknown"
 
+meta_path = pathlib.Path(__file__).parent / "static" / "meta.json"
+with open(meta_path) as f:
+    meta_data = json.load(f)
 
 class Cosmograph(anywidget.AnyWidget):
-    _esm = pathlib.Path(__file__).parent / "static" / "widget.js"
-    _css = pathlib.Path(__file__).parent / "static" / "widget.css"
+    _esm = pathlib.Path(__file__).parent / "static" / meta_data["js"]
+    _css = pathlib.Path(__file__).parent / "static" / meta_data["css"]
     
     # Configuration parameters for Cosmograph
     # List of all configuration parameters that JS side support can be found in ./js/config-props.ts

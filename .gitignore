@@ -11,3 +11,4 @@ __pycache__
 src/cosmograph_widget/static
 
 .eslintcache
+meta.json
