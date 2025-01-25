@@ -105,3 +105,10 @@ npm run dev
 Open `example.ipynb` in JupyterLab, VS Code, or your favorite editor
 to start developing. Changes made in `js/` will be reflected
 in the notebook.
+
+### Linting Python Code
+We use [Ruff](https://docs.astral.sh/ruff/) to lint our Python code. You can install Ruff via `pipx install ruff` or `brew install ruff`.
+
+To lint the code, run `ruff check` (or `pipx run ruff check`) from the root directory of the project.
+
+To format the code, run `ruff format` (or `pipx run ruff format`) from the root directory of the project.
