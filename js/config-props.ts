@@ -61,6 +61,7 @@ export const configProperties = [
   'point_color_strategy',
   'point_size_by',
   'point_size_range',
+  'point_size_strategy',
   'point_label_by',
   'point_label_weight_by',
   'point_x_by',

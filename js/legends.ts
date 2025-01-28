@@ -116,6 +116,13 @@ export class CosmographLegends {
             label: d => `${type}s by ${d}`,
           })
         }
+        if (this._linkWidthLegend) {
+          await this._linkWidthLegend.setConfig({
+            ...(await this._linkWidthLegend.getConfig()),
+            useLinksData: true,
+            label: d => `${type}s by ${d}`,
+          })
+        }
         legendInstance = this._linkWidthLegend
         break
       case 'link_color':

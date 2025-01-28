@@ -21,7 +21,9 @@ export async function prepareCosmographDataAndMutate(config: WidgetConfig): Prom
       pointColorPalette: config.pointColorPalette,
       pointColorByMap: config.pointColorByMap,
       pointColorStrategy: config.pointColorStrategy,
+      pointSize: config.pointSize,
       pointSizeBy: config.pointSizeBy,
+      pointSizeStrategy: config.pointSizeStrategy,
       pointXBy: config.pointXBy,
       pointYBy: config.pointYBy,
       pointClusterBy: config.pointClusterBy,
@@ -84,9 +86,9 @@ export async function prepareCosmographDataAndMutate(config: WidgetConfig): Prom
   }
 }
 
-export function getPointColorLegendType(pointsSummary?: Record<string, unknown>[], pointColorBy?: string): 'range' | 'type' | undefined {
-  const pointColorInfo = pointsSummary?.find(d => d.column_name === pointColorBy)
-  if (pointColorInfo && duckDBNumericTypes.includes(pointColorInfo.column_type as string)) {
+export function getPointColorLegendType(pointsSummary?: Record<string, unknown>[], config?: CosmographConfig): 'range' | 'type' | undefined {
+  const pointColorInfo = pointsSummary?.find(d => d.column_name === config?.pointColorBy)
+  if (config?.pointColorStrategy === 'degree' || (pointColorInfo && duckDBNumericTypes.includes(pointColorInfo.column_type as string))) {
     return 'range'
   } else if (pointColorInfo && duckDBStringTypes.includes(pointColorInfo.column_type as string)) {
     return 'type'
@@ -125,19 +127,52 @@ export function getPointColorStrategy(
   // Priority 1: Use existing strategy if defined
   if (cosmographConfig.pointColorStrategy) return cosmographConfig.pointColorStrategy
   // Priority 2: Custom function takes precedence
-  if (cosmographConfig.pointColorByFn) return undefined
+  if (cosmographConfig.pointColorByFn || cosmographConfig.pointColor) return undefined
   // Priority 3: Map-based coloring
   if (cosmographConfig.pointColorByMap) return PointColorStrategy.Map
 
   if (!pointColor && !pointColorBy) {
-    // Use degree-based coloring if links are present and no `pointColorBy` column
+    // Use degree-based coloring if links are present and no {@link pointColorBy} column
     return cosmographConfig.linkSourceBy ? PointColorStrategy.Degree : undefined
   }
 
-  // Apply `interpolatePalette` if `pointColorBy` contains numeric values
+  // Apply `interpolatePalette` if {@link pointColorBy} contains numeric values
   const columnType = summary?.find(k => k.column_name === pointColorBy)?.column_type
   if (columnType === 'DOUBLE' || columnType === 'INTEGER') {
     return PointColorStrategy.InterpolatePalette
+  }
+
+  return undefined
+}
+
+// TODO: Remove this code when Cosmograph exports the `getPointSizeStrategy` function
+export enum PointSizeStrategy {
+  Degree = 'degree',
+  Auto = 'auto'
+}
+
+export type PointSizeStrategyType = `${PointSizeStrategy}`
+
+export function getPointSizeStrategy(
+  cosmographConfig: CosmographConfig,
+  summary?: Record<string, unknown>[]
+): PointSizeStrategyType | undefined {
+  const { pointSizeBy, pointSize } = cosmographConfig
+
+  // Priority 1: Use existing strategy if defined
+  if (cosmographConfig.pointSizeStrategy) return cosmographConfig.pointSizeStrategy
+  // Priority 2: Custom function takes precedence
+  if (cosmographConfig.pointSizeByFn || cosmographConfig.pointSize) return undefined
+
+  if (!pointSize && !pointSizeBy) {
+    // Use degree-based coloring if links are present and no {@link pointSizeBy} column
+    return cosmographConfig.linkSourceBy ? PointSizeStrategy.Degree : undefined
+  }
+
+  // Apply `auto` if contains numeric values
+  const columnType = summary?.find(k => k.column_name === pointSizeBy)?.column_type
+  if (columnType === 'DOUBLE' || columnType === 'INTEGER') {
+    return PointSizeStrategy.Auto
   }
 
   return undefined
