@@ -1,4 +1,7 @@
+import { scaleSequential } from 'd3-scale'
+import { interpolateWarm } from 'd3-scale-chromatic'
 import { CosmographConfig, CosmographDataPrepConfig, prepareCosmographData, CosmographInputData } from '@cosmograph/cosmograph'
+import { duckDBNumericTypes, duckDBStringTypes } from './helper'
 
 export type WidgetConfig = CosmographConfig & {
   pointTimelineBy?: string;
@@ -13,7 +16,11 @@ export async function prepareCosmographDataAndMutate(config: WidgetConfig): Prom
     points: {
       pointLabelBy: config.pointLabelBy,
       pointLabelWeightBy: config.pointLabelWeightBy,
+      pointColor: config.pointColor,
       pointColorBy: config.pointColorBy,
+      pointColorPalette: config.pointColorPalette,
+      pointColorByMap: config.pointColorByMap,
+      pointColorStrategy: config.pointColorStrategy,
       pointSizeBy: config.pointSizeBy,
       pointXBy: config.pointXBy,
       pointYBy: config.pointYBy,
@@ -65,10 +72,6 @@ export async function prepareCosmographDataAndMutate(config: WidgetConfig): Prom
     config.showDynamicLabels = true
   }
 
-  if (config.pointColor !== undefined) {
-    config.pointColorStrategy = undefined
-  }
-
   // Temporary fix for Cosmograph simulation config parameters for small graphs
   if (preparedDataArrow?.points?.numRows !== undefined && preparedDataArrow?.points?.numRows < 50 && config.simulationGravity === undefined) {
     config.simulationGravity = 0
@@ -79,4 +82,63 @@ export async function prepareCosmographDataAndMutate(config: WidgetConfig): Prom
   if (preparedDataArrow?.points?.numRows !== undefined && preparedDataArrow?.points?.numRows < 50 && config.simulationDecay === undefined) {
     config.simulationDecay = 1000
   }
+}
+
+export function getPointColorLegendType(pointsSummary?: Record<string, unknown>[], pointColorBy?: string): 'range' | 'type' | undefined {
+  const pointColorInfo = pointsSummary?.find(d => d.column_name === pointColorBy)
+  if (pointColorInfo && duckDBNumericTypes.includes(pointColorInfo.column_type as string)) {
+    return 'range'
+  } else if (pointColorInfo && duckDBStringTypes.includes(pointColorInfo.column_type as string)) {
+    return 'type'
+  }
+  return undefined
+}
+
+export function updateLinkColorFn(linksSummary: Record<string, unknown>[], cosmographConfig: CosmographConfig): void {
+  const linkColorInfo = linksSummary.find(d => d.column_name === cosmographConfig.linkColorBy)
+  if (linkColorInfo && duckDBNumericTypes.includes(linkColorInfo.column_type as string)) {
+    const linkColorScale = scaleSequential(interpolateWarm)
+    linkColorScale.domain([Number(linkColorInfo.min), Number(linkColorInfo.max)])
+    cosmographConfig.linkColorByFn = (d: number) => linkColorScale(d)
+  } else {
+    cosmographConfig.linkColorByFn = undefined
+  }
+  // TODO: If the data is of category type, use `CosmographTypeColorLegend`
+}
+
+// TODO: Remove this code when Cosmograph exports the `getPointColorStrategy` function
+enum PointColorStrategy {
+  Palette = 'palette',
+  InterpolatePalette = 'interpolatePalette',
+  Map = 'map',
+  Degree = 'degree'
+}
+
+type PointColorStrategyType = `${PointColorStrategy}`
+
+export function getPointColorStrategy(
+  cosmographConfig: CosmographConfig,
+  summary?: Record<string, unknown>[]
+): PointColorStrategyType | undefined {
+  const { pointColorBy, pointColor } = cosmographConfig
+
+  // Priority 1: Use existing strategy if defined
+  if (cosmographConfig.pointColorStrategy) return cosmographConfig.pointColorStrategy
+  // Priority 2: Custom function takes precedence
+  if (cosmographConfig.pointColorByFn) return undefined
+  // Priority 3: Map-based coloring
+  if (cosmographConfig.pointColorByMap) return PointColorStrategy.Map
+
+  if (!pointColor && !pointColorBy) {
+    // Use degree-based coloring if links are present and no `pointColorBy` column
+    return cosmographConfig.linkSourceBy ? PointColorStrategy.Degree : undefined
+  }
+
+  // Apply `interpolatePalette` if `pointColorBy` contains numeric values
+  const columnType = summary?.find(k => k.column_name === pointColorBy)?.column_type
+  if (columnType === 'DOUBLE' || columnType === 'INTEGER') {
+    return PointColorStrategy.InterpolatePalette
+  }
+
+  return undefined
 }

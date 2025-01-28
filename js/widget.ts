@@ -1,14 +1,11 @@
 import type { RenderProps } from '@anywidget/types'
 import { Cosmograph, CosmographConfig } from '@cosmograph/cosmograph'
-import { tableFromIPC, Table } from 'apache-arrow'
-import { scaleSequential } from 'd3-scale'
-import { interpolateWarm } from 'd3-scale-chromatic'
-import { color } from 'd3-color'
+import { tableFromIPC } from 'apache-arrow'
 
-import { subscribe, toCamelCase, duckDBNumericTypes, duckDBStringTypes } from './helper'
+import { subscribe, toCamelCase } from './helper'
 import { configProperties } from './config-props'
 import { createWidgetContainer } from './widget-elements'
-import { prepareCosmographDataAndMutate } from './cosmograph-data'
+import { prepareCosmographDataAndMutate, getPointColorStrategy, getPointColorLegendType, updateLinkColorFn } from './cosmograph-data'
 import { CosmographLegends } from './legends'
 import { PointTimeline } from './components/point-timeline'
 import { ControlButtonsComponent } from './components/control-buttons'
@@ -137,43 +134,6 @@ async function render({ model, el }: RenderProps) {
     }
   })
 
-  function updatePointColorFn(pointsSummary?: Record<string, unknown>[]): 'range' | 'type' | undefined {
-    const pointColorInfo = pointsSummary?.find(d => d.column_name === cosmographConfig.pointColorBy)
-    if (pointColorInfo && duckDBNumericTypes.includes(pointColorInfo.column_type as string)) {
-      const nodeColorScale = scaleSequential(interpolateWarm)
-      nodeColorScale.domain([Number(pointColorInfo.min), Number(pointColorInfo.max)])
-      cosmographConfig.pointColorByFn = (d: number) => nodeColorScale(d)
-      return 'range'
-    } else if (pointColorInfo && duckDBStringTypes.includes(pointColorInfo.column_type as string)) {
-      if (color(pointColorInfo.min as string) && color(pointColorInfo.max as string)) {
-        cosmographConfig.pointColorByFn = undefined
-        return undefined
-      }
-      const uniqueValues = new Set<string>((cosmograph?.config?.points as Table)?.getChild(cosmographConfig.pointColorBy as string)?.toArray())
-      const nodeColorScale = scaleSequential(interpolateWarm)
-      cosmographConfig.pointColorByFn = (value: string): string => {
-        const i = [...uniqueValues].indexOf(value)
-        return nodeColorScale(i / (uniqueValues.size - 1))
-      }
-      return 'type'
-    } else {
-      cosmographConfig.pointColorByFn = undefined
-      return undefined
-    }
-  }
-
-  function updateLinkColorFn(linksSummary: Record<string, unknown>[]): void {
-    const linkColorInfo = linksSummary.find(d => d.column_name === cosmographConfig.linkColorBy)
-    if (linkColorInfo && duckDBNumericTypes.includes(linkColorInfo.column_type as string)) {
-      const linkColorScale = scaleSequential(interpolateWarm)
-      linkColorScale.domain([Number(linkColorInfo.min), Number(linkColorInfo.max)])
-      cosmographConfig.linkColorByFn = (d: number) => linkColorScale(d)
-    } else {
-      cosmographConfig.linkColorByFn = undefined
-    }
-    // TODO: If the data is of category type, use `CosmographTypeColorLegend`
-  }
-
   const unsubscribes = Object
     .entries(modelChangeHandlers)
     .map(([propName, onModelChange]) => subscribe(model, `change:${propName}`, async () => {
@@ -186,20 +146,24 @@ async function render({ model, el }: RenderProps) {
         await legends.updateLegend('link', 'width')
       }
 
-      let pointColorType = undefined
-      if (propName === 'point_color_by') {
-        if (cosmograph) pointColorType = updatePointColorFn(cosmograph.stats.pointsSummary)
+      // If color associated properties change, update the color strategy
+      if (propName === 'point_color_by' || propName === 'point_color_palette' || propName === 'point_color_by_map' || propName === 'point_color_strategy') {
+        cosmographConfig.pointColorStrategy = model.get('point_color_strategy')
+        const pointsSummary = cosmograph?.stats.pointsSummary
+        cosmographConfig.pointColorStrategy = getPointColorStrategy(cosmographConfig, pointsSummary)
       }
 
       if (propName === 'link_color_by') {
-        if (cosmograph?.stats.linksSummary) updateLinkColorFn(cosmograph.stats.linksSummary)
+        if (cosmograph?.stats.linksSummary) updateLinkColorFn(cosmograph.stats.linksSummary, cosmographConfig)
       }
 
       if (configProperties.includes(propName)) {
-        cosmograph?.setConfig(cosmographConfig)
+        await cosmograph?.setConfig(cosmographConfig)
       }
 
-      if (propName === 'point_color_by') {
+      // If color associated properties change, update the color legend after setting the config to cosmograph
+      if (propName === 'point_color_by' || propName === 'point_color_palette' || propName === 'point_color_by_map' || propName === 'point_color_strategy') {
+        const pointColorType = getPointColorLegendType(cosmograph?.stats.pointsSummary, cosmographConfig.pointColorBy)
         await legends.updateLegend('point', 'color', pointColorType)
       }
 
@@ -225,13 +189,12 @@ async function render({ model, el }: RenderProps) {
     await legends.updateLegend('point', 'size')
     await legends.updateLegend('link', 'width')
 
-    const pointColorType = updatePointColorFn(stats.pointsSummary)
-
     if (stats.linksSummary) {
-      updateLinkColorFn(stats.linksSummary)
+      updateLinkColorFn(stats.linksSummary, cosmographConfig)
     }
 
-    cosmograph.setConfig(cosmographConfig)
+    await cosmograph.setConfig(cosmographConfig)
+    const pointColorType = getPointColorLegendType(stats.pointsSummary, cosmographConfig.pointColorBy)
     await legends.updateLegend('point', 'color', pointColorType)
     await legends.updateLegend('link', 'color')
 

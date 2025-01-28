@@ -76,7 +76,12 @@ class Cosmograph(anywidget.AnyWidget):
     # Parameters based on parameters from Cosmograph library
     point_id_by = Unicode(None, allow_none=True).tag(sync=True)
     point_index_by = Unicode(None, allow_none=True).tag(sync=True)
+
     point_color_by = Unicode(None, allow_none=True).tag(sync=True)
+    point_color_palette = List(Unicode, default_value=None, allow_none=True).tag(sync=True)
+    point_color_by_map = List(List(Union([Unicode(), List(Float())])), default_value=None, allow_none=True).tag(sync=True)
+    point_color_strategy = Unicode(None, allow_none=True).tag(sync=True)
+
     point_size_by = Unicode(None, allow_none=True).tag(sync=True)
     point_size_range = List(Float, default_value=None, allow_none=True).tag(sync=True)
     point_label_by  = Unicode(None, allow_none=True).tag(sync=True)
