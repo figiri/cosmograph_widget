@@ -89,3 +89,8 @@
 	width: 15px;
 	height: 30px;
 }
+
+/* Widget output div has a 8px left and right padding which looks off */
+.cell-output-ipywidget-background {
+	padding: 0 !important;
+}
