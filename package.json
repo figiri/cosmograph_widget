@@ -2,7 +2,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "npm run build -- --sourcemap=inline --watch",
-		"build": "esbuild js/widget.ts --minify --format=esm --bundle --outdir=src/cosmograph_widget/static",
+		"build": "rm -rf src/cosmograph_widget/static && esbuild js/widget.ts --minify --bundle --splitting --entry-names=[name]-[hash] --metafile=meta.json --format=esm --outdir=src/cosmograph_widget/static && node create-meta-file.cjs",
 		"typecheck": "tsc --noEmit",
 		"lint": "eslint --cache ./js"
 	},
