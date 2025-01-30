@@ -30,6 +30,7 @@ artifacts = ["src/cosmograph_widget/static/*"]
 [tool.hatch.build.hooks.jupyter-builder]
 build-function = "hatch_jupyter_builder.npm_builder"
 ensured-targets = ["src/cosmograph_widget/static/"]
+skip-if-exists = ["src/cosmograph_widget/static/"]
 dependencies = ["hatch-jupyter-builder>=0.5.0"]
 
 [tool.hatch.build.hooks.jupyter-builder.build-kwargs]
